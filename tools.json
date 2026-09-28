@@ -1,0 +1,26 @@
+[
+  {
+    "id": "video-to-gif",
+    "name": "動画GIF変換ツール",
+    "description": "MP4やWebMなどの動画から指定区間をGIFアニメーションに変換します。完全ブラウザ完結で安全・高速。",
+    "path": "./items/video-to-gif/",
+    "icon": "film",
+    "tags": ["動画", "GIF", "変換"]
+  },
+  {
+    "id": "audio-extractor",
+    "name": "動画から音声抽出ツール",
+    "description": "動画ファイルから音声トラックのみを抽出し、MP3やWAV形式で保存します。",
+    "path": "./items/audio-extractor/",
+    "icon": "music",
+    "tags": ["動画", "音声", "MP3", "WAV"]
+  },
+  {
+    "id": "video-trimmer",
+    "name": "動画トリミング・無音化ツール",
+    "description": "動画の不要な部分の切り取り（カット）や、音声を削除（無音化）して軽量化します。",
+    "path": "./items/video-trimmer/",
+    "icon": "scissors",
+    "tags": ["動画", "トリミング", "ミュート"]
+  }
+]
