@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ブラウザ完結型 メディア編集ツール | Tools</title>
+  <meta name="description" content="サーバーへファイルをアップロードせず、お使いの端末・ブラウザ上だけで安全かつ高速に動画や音声を処理できる無料Webツール集です。">
+  
+  <!-- OGP / SEO設定 -->
+  <meta property="og:title" content="ブラウザ完結型 メディア編集ツール">
+  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声編集ツール群。">
+  <meta property="og:type" content="website">
+
+  <link rel="stylesheet" href="./assets/css/common.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="./">Web Tools</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>ブラウザ完結型 メディアツール</h1>
+      <p>サーバー送信なし。すべての変換・編集はお使いのデバイス内で安全に処理されます。</p>
+    </section>
+
+    <!-- ツール一覧レンダリングコンテナ -->
+    <div id="tool-container" class="tool-grid">
+      <!-- JavaScriptで動的生成されます -->
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Web Tools. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const container = document.getElementById('tool-container');
+
+      // アイコンのマッピング定義
+      const iconMap = {
+        film: '🎬',
+        music: '🎵',
+        scissors: '✂️',
+        default: '🔧'
+      };
+
+      try {
+        const response = await fetch('./tools.json');
+        if (!response.ok) throw new Error('tools.json の取得に失敗しました');
+        
+        const tools = await response.json();
+
+        container.innerHTML = tools.map(tool => {
+          const icon = iconMap[tool.icon] || iconMap.default;
+          const tagsHtml = (tool.tags || [])
+            .map(tag => `<span class="tool-tag">${tag}</span>`)
+            .join('');
+
+          return `
+            <a href="${tool.path}" class="tool-card">
+              <div class="tool-card-icon">${icon}</div>
+              <div class="tool-card-title">${tool.name}</div>
+              <p class="tool-card-desc">${tool.description}</p>
+              <div class="tool-card-tags">${tagsHtml}</div>
+            </a>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error(error);
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
+      }
+    });
+  </script>
+</body>
+</html>
