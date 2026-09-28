@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>動画から音声抽出ツール | Web Tools</title>
+  <meta name="description" content="動画から音声トラックを抽出し、MP3・WAV・AACとして保存します。完全ブラウザ完結で安全・高速。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .editor-section {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .video-preview {
+      width: 100%;
+      max-height: 320px;
+      border-radius: 8px;
+      background: #000;
+      margin-bottom: 1.5rem;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .input-group select {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .output-section {
+      display: none;
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .audio-preview {
+      width: 100%;
+      max-width: 480px;
+      margin: 1rem auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">Web Tools</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 動画から音声抽出ツール
+    </div>
+
+    <h2>動画から音声抽出ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      動画ファイルから映像を取り除き、音声のみをMP3やWAV形式で切り出してダウンロードします。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎵</div>
+      <h3>動画ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックしてファイルを選択（MP4, WebM, MOVなど）</p>
+    </div>
+
+    <!-- 編集設定エリア -->
+    <div id="editor-section" class="editor-section">
+      <video id="video-player" class="video-preview" controls></video>
+
+      <div class="settings-grid">
+        <div class="input-group">
+          <label for="audio-format">出力フォーマット</label>
+          <select id="audio-format">
+            <option value="mp3" selected>MP3（標準・汎用）</option>
+            <option value="wav">WAV（非圧縮・高音質）</option>
+            <option value="aac">AAC（M4A）</option>
+          </select>
+        </div>
+        <div class="input-group" id="bitrate-group">
+          <label for="bitrate">ビットレート</label>
+          <select id="bitrate">
+            <option value="128k">128 kbps（軽量）</option>
+            <option value="192k" selected>192 kbps（標準）</option>
+            <option value="320k">320 kbps（最高音質）</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="extract-btn" class="btn" style="width: 100%;">音声を抽出する</button>
+
+      <!-- プログレスバー -->
+      <div id="progress-wrapper" style="display: none; margin-top: 1.5rem;">
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="status-text" style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">準備中...</p>
+      </div>
+
+      <!-- 出力エリア -->
+      <div id="output-section" class="output-section">
+        <h3>抽出完了！</h3>
+        <p id="output-size" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;"></p>
+        <audio id="audio-player" class="audio-preview" controls></audio>
+        <div>
+          <button id="download-btn" class="btn">音声ファイルをダウンロード</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Web Tools. All rights reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
