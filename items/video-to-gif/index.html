@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>動画GIF変換ツール | Web Tools</title>
+  <meta name="description" content="MP4やWebMなどの動画を高品質なGIFアニメーションに変換します。サーバー送信なしの完全クライアント処理。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .editor-section {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .video-preview {
+      width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      background: #000;
+      margin-bottom: 1.5rem;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .input-group input, .input-group select {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .output-section {
+      display: none;
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .output-preview {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">Web Tools</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 動画GIF変換ツール
+    </div>
+
+    <h2>動画GIF変換ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      動画の指定範囲を切り取り、ブラウザ内でパレット最適化された高品質なGIFアニメに変換します。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📁</div>
+      <h3>動画ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックしてファイルを選択（MP4, WebM, MOVなど）</p>
+    </div>
+
+    <!-- 編集設定エリア（ファイル選択後に表示） -->
+    <div id="editor-section" class="editor-section">
+      <video id="video-player" class="video-preview" controls></video>
+
+      <div class="settings-grid">
+        <div class="input-group">
+          <label for="start-time">開始秒数 (秒)</label>
+          <input type="number" id="start-time" min="0" step="0.1" value="0">
+        </div>
+        <div class="input-group">
+          <label for="end-time">終了秒数 (秒)</label>
+          <input type="number" id="end-time" min="0.1" step="0.1" value="5">
+        </div>
+        <div class="input-group">
+          <label for="fps">フレームレート (FPS)</label>
+          <select id="fps">
+            <option value="10">10 fps（軽量）</option>
+            <option value="15" selected>15 fps（標準）</option>
+            <option value="24">24 fps（なめらか）</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="width">横幅リサイズ</label>
+          <select id="width">
+            <option value="320">320px（小）</option>
+            <option value="480" selected>480px（標準）</option>
+            <option value="640">640px（大）</option>
+            <option value="-1">原寸大</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="convert-btn" class="btn" style="width: 100%;">GIFに変換する</button>
+
+      <!-- プログレスバー -->
+      <div id="progress-wrapper" style="display: none; margin-top: 1.5rem;">
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="status-text" style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">処理の準備中...</p>
+      </div>
+
+      <!-- 出力・ダウンロードエリア -->
+      <div id="output-section" class="output-section">
+        <h3>変換完了！</h3>
+        <p id="output-size" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;"></p>
+        <div>
+          <img id="output-gif" class="output-preview" alt="変換されたGIF">
+        </div>
+        <button id="download-btn" class="btn">GIFをダウンロード</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Web Tools. All rights reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
