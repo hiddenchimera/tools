@@ -1,6 +1,7 @@
-import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
-import { getFFmpeg } from '../../assets/js/ffmpeg-loader.js';
+// グローバルの FFmpeg から必要な関数を取得
+const { createFFmpeg, fetchFile } = FFmpeg;
 
+let ffmpeg = null;
 let currentFile = null;
 let generatedBlob = null;
 
@@ -20,7 +21,7 @@ const outputGif = document.getElementById('output-gif');
 const outputSize = document.getElementById('output-size');
 const downloadBtn = document.getElementById('download-btn');
 
-// 共通ドラッグ＆ドロップ初期化
+// ファイル受付
 CommonUtils.initDropzone(dropzone, (file) => {
   if (!file.type.startsWith('video/')) {
     alert('動画ファイルを選択してください。');
@@ -36,7 +37,6 @@ function loadFile(file) {
 
   videoPlayer.onloadedmetadata = () => {
     startTimeInput.value = '0';
-    // 初期値として最大5秒、または動画の長さ
     const defaultEnd = Math.min(5, Math.floor(videoPlayer.duration * 10) / 10);
     endTimeInput.value = defaultEnd;
     endTimeInput.max = videoPlayer.duration;
@@ -66,40 +66,45 @@ convertBtn.addEventListener('click', async () => {
   statusText.textContent = 'FFmpegエンジンを準備中... (初回のみ数秒かかります)';
 
   try {
-    const ffmpeg = await getFFmpeg((event) => {
-      // 進行状況のプログレスバー更新
-      if (event && typeof event.progress === 'number') {
-        const percent = Math.min(100, Math.round(event.progress * 100));
+    if (!ffmpeg) {
+      ffmpeg = createFFmpeg({
+        log: true,
+        // シングルスレッド版のコアをCDNから指定（COOP/COEPヘッダー不要）
+        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+      });
+      ffmpeg.setProgress(({ ratio }) => {
+        const percent = Math.min(100, Math.round(ratio * 100));
         progressBar.style.width = `${percent}%`;
         statusText.textContent = `変換中... ${percent}%`;
-      }
-    });
+      });
+      await ffmpeg.load();
+    }
 
     statusText.textContent = '動画ファイルを読み込み中...';
-    const inputName = 'input_video' + (currentFile.name.substring(currentFile.name.lastIndexOf('.')) || '.mp4');
+    const inputExt = currentFile.name.substring(currentFile.name.lastIndexOf('.')) || '.mp4';
+    const inputName = `input${inputExt}`;
     const outputName = 'output.gif';
 
-    await ffmpeg.writeFile(inputName, await fetchFile(currentFile));
+    ffmpeg.FS('writeFile', inputName, await fetchFile(currentFile));
 
-    statusText.textContent = 'GIF生成中（パレット最適化中）...';
+    statusText.textContent = 'GIF生成中...';
 
     const fps = fpsSelect.value;
     const width = widthSelect.value;
-    // リサイズとカラーパレット最適化（高品質GIFフィルタ）
     const scaleFilter = width === '-1' ? `fps=${fps}` : `fps=${fps},scale=${width}:-1:flags=lanczos`;
     const filterComplex = `[0:v] ${scaleFilter},split [a][b];[a] palettegen [p];[b][p] paletteuse`;
 
     // FFmpegコマンド実行
-    await ffmpeg.exec([
+    await ffmpeg.run(
       '-ss', start.toString(),
       '-t', duration.toString(),
       '-i', inputName,
       '-filter_complex', filterComplex,
       outputName
-    ]);
+    );
 
     // 生成ファイル取得
-    const data = await ffmpeg.readFile(outputName);
+    const data = ffmpeg.FS('readFile', outputName);
     generatedBlob = new Blob([data.buffer], { type: 'image/gif' });
 
     // プレビュー表示
@@ -109,9 +114,9 @@ convertBtn.addEventListener('click', async () => {
     outputSection.style.display = 'block';
     statusText.textContent = '完了しました！';
 
-    // 仮想FSの掃除
-    await ffmpeg.deleteFile(inputName);
-    await ffmpeg.deleteFile(outputName);
+    // 仮想FS掃除
+    ffmpeg.FS('unlink', inputName);
+    ffmpeg.FS('unlink', outputName);
 
   } catch (error) {
     console.error(error);
@@ -122,7 +127,7 @@ convertBtn.addEventListener('click', async () => {
   }
 });
 
-// ダウンロードボタン
+// ダウンロード
 downloadBtn.addEventListener('click', () => {
   if (!generatedBlob) return;
   const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'converted';
