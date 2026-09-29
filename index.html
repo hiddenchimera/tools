@@ -3,15 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>完全無料のブラウザ完結型 メディアツール | Tools</title>
-  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型の動画・音声編集ツール集。サーバー送信なしで安全にGIF変換、音声抽出、トリミングが可能です。">
+  <title>完全無料・ブラウザ完結型 メディアツール | Tools</title>
+  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型のメディアツール集。サーバー送信なしで安全にGIF変換、音声抽出、トリミング、画像変換が可能です。">
   
   <!-- OGP / SEO設定 -->
-  <meta property="og:title" content="ブラウザ完結型 メディアツール">
-  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声編集ツール群。">
+  <meta property="og:title" content="完全無料・ブラウザ完結型 メディアツール">
+  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声・画像のメディアツール群。">
   <meta property="og:type" content="website">
 
   <link rel="stylesheet" href="./assets/css/common.css">
+  <style>
+    .category-section {
+      margin-bottom: 3rem;
+    }
+    .category-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+      color: var(--text-color);
+    }
+    .category-desc {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+      padding-left: 1rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -27,26 +45,54 @@
       <p>会員登録・サーバー送信なし。すべての編集・変換がお使いの端末内で安全に完結します。</p>
     </section>
 
-    <!-- ツール一覧レンダリングコンテナ -->
-    <div id="tool-container" class="tool-grid">
-      <!-- JavaScriptで動的生成されます -->
-    </div>
+    <!-- カテゴリ1: 手持ち動画・音声のクライアント完結型編集ツール -->
+    <section class="category-section">
+      <h2 class="category-title">1. 手持ち動画・音声のクライアント完結型編集ツール</h2>
+      <div id="video-tool-container" class="tool-grid"></div>
+    </section>
+
+    <!-- カテゴリ2: 画像・メディアの変換・最適化ツール -->
+    <section class="category-section">
+      <h2 class="category-title">2. 画像・メディアの変換・最適化ツール</h2>
+      <p class="category-desc">ブラウザ標準機能を使用し、完全に端末内で高速かつ安全に処理します。</p>
+      <div id="image-tool-container" class="tool-grid"></div>
+    </section>
   </main>
 
   <footer>
-    <p>&copy; Hidden Chimera. All rights reserved.</p>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
   </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const container = document.getElementById('tool-container');
+      const videoContainer = document.getElementById('video-tool-container');
+      const imageContainer = document.getElementById('image-tool-container');
 
       // アイコンのマッピング定義
       const iconMap = {
         film: '🎬',
         music: '🎵',
         scissors: '✂️',
+        image: '🖼️',
+        maximize: '📐',
+        shield: '🛡️',
         default: '🔧'
+      };
+
+      const renderCard = (tool) => {
+        const icon = iconMap[tool.icon] || iconMap.default;
+        const tagsHtml = (tool.tags || [])
+          .map(tag => `<span class="tool-tag">${tag}</span>`)
+          .join('');
+
+        return `
+          <a href="${tool.path}" class="tool-card">
+            <div class="tool-card-icon">${icon}</div>
+            <div class="tool-card-title">${tool.name}</div>
+            <p class="tool-card-desc">${tool.description}</p>
+            <div class="tool-card-tags">${tagsHtml}</div>
+          </a>
+        `;
       };
 
       try {
@@ -55,25 +101,23 @@
         
         const tools = await response.json();
 
-        container.innerHTML = tools.map(tool => {
-          const icon = iconMap[tool.icon] || iconMap.default;
-          const tagsHtml = (tool.tags || [])
-            .map(tag => `<span class="tool-tag">${tag}</span>`)
-            .join('');
+        let videoHtml = '';
+        let imageHtml = '';
 
-          return `
-            <a href="${tool.path}" class="tool-card">
-              <div class="tool-card-icon">${icon}</div>
-              <div class="tool-card-title">${tool.name}</div>
-              <p class="tool-card-desc">${tool.description}</p>
-              <div class="tool-card-tags">${tagsHtml}</div>
-            </a>
-          `;
-        }).join('');
+        tools.forEach(tool => {
+          if (tool.category === 'video-audio') {
+            videoHtml += renderCard(tool);
+          } else if (tool.category === 'image') {
+            imageHtml += renderCard(tool);
+          }
+        });
+
+        videoContainer.innerHTML = videoHtml || '<p style="color: var(--text-muted);">ツールがありません。</p>';
+        imageContainer.innerHTML = imageHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
 
       } catch (error) {
         console.error(error);
-        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
+        videoContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
       }
     });
   </script>
