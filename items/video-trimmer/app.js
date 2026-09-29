@@ -8,22 +8,17 @@ let outputFilename = '';
 const dropzone = document.getElementById('dropzone');
 const editorSection = document.getElementById('editor-section');
 const videoPlayer = document.getElementById('video-player');
-const formatSelect = document.getElementById('audio-format');
-const bitrateSelect = document.getElementById('bitrate');
-const bitrateGroup = document.getElementById('bitrate-group');
-const extractBtn = document.getElementById('extract-btn');
+const startTimeInput = document.getElementById('start-time');
+const endTimeInput = document.getElementById('end-time');
+const muteCheckbox = document.getElementById('mute-checkbox');
+const processBtn = document.getElementById('process-btn');
 const progressWrapper = document.getElementById('progress-wrapper');
 const progressBar = document.getElementById('progress-bar');
 const statusText = document.getElementById('status-text');
 const outputSection = document.getElementById('output-section');
-const audioPlayer = document.getElementById('audio-player');
+const outputVideo = document.getElementById('output-video');
 const outputSize = document.getElementById('output-size');
 const downloadBtn = document.getElementById('download-btn');
-
-// WAV選択時はビットレートを非表示
-formatSelect.addEventListener('change', () => {
-  bitrateGroup.style.display = (formatSelect.value === 'wav') ? 'none' : 'flex';
-});
 
 // ファイル受付
 CommonUtils.initDropzone(dropzone, (file) => {
@@ -33,15 +28,31 @@ CommonUtils.initDropzone(dropzone, (file) => {
   }
   currentFile = file;
   videoPlayer.src = URL.createObjectURL(file);
-  editorSection.style.display = 'block';
-  outputSection.style.display = 'none';
+
+  videoPlayer.onloadedmetadata = () => {
+    startTimeInput.value = '0';
+    endTimeInput.value = Math.floor(videoPlayer.duration * 10) / 10;
+    endTimeInput.max = videoPlayer.duration;
+
+    editorSection.style.display = 'block';
+    outputSection.style.display = 'none';
+  };
 });
 
-// 抽出処理
-extractBtn.addEventListener('click', async () => {
+// 処理実行
+processBtn.addEventListener('click', async () => {
   if (!currentFile) return;
 
-  extractBtn.disabled = true;
+  const start = parseFloat(startTimeInput.value) || 0;
+  const end = parseFloat(endTimeInput.value) || videoPlayer.duration;
+  const duration = end - start;
+
+  if (duration <= 0) {
+    alert('終了時間は開始時間よりも後に設定してください。');
+    return;
+  }
+
+  processBtn.disabled = true;
   progressWrapper.style.display = 'block';
   outputSection.style.display = 'none';
   progressBar.style.width = '0%';
@@ -56,7 +67,7 @@ extractBtn.addEventListener('click', async () => {
       ffmpeg.setProgress(({ ratio }) => {
         const percent = Math.min(100, Math.round(ratio * 100));
         progressBar.style.width = `${percent}%`;
-        statusText.textContent = `音声抽出中... ${percent}%`;
+        statusText.textContent = `動画処理中... ${percent}%`;
       });
       await ffmpeg.load();
     }
@@ -64,50 +75,50 @@ extractBtn.addEventListener('click', async () => {
     statusText.textContent = '動画ファイルを読み込み中...';
     const inputExt = currentFile.name.substring(currentFile.name.lastIndexOf('.')) || '.mp4';
     const inputName = `input${inputExt}`;
-    const format = formatSelect.value;
-    const bitrate = bitrateSelect.value;
-    const outputName = `output.${format}`;
+    const outputName = 'output.mp4';
 
     ffmpeg.FS('writeFile', inputName, await fetchFile(currentFile));
 
-    statusText.textContent = '音声抽出・変換中...';
+    statusText.textContent = 'トリミング・処理中...';
 
-    // コマンド組み立て
-    const args = ['-i', inputName, '-vn'];
-    if (format === 'mp3') {
-      args.push('-c:a', 'libmp3lame', '-b:a', bitrate);
-    } else if (format === 'wav') {
-      args.push('-c:a', 'pcm_s16le');
-    } else if (format === 'aac') {
-      args.push('-c:a', 'aac', '-b:a', bitrate);
+    const args = [
+      '-ss', start.toString(),
+      '-t', duration.toString(),
+      '-i', inputName
+    ];
+
+    if (muteCheckbox.checked) {
+      args.push('-an'); // 音声削除
+    } else {
+      args.push('-c:a', 'aac');
     }
-    args.push(outputName);
+
+    // 映像処理
+    args.push('-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', outputName);
 
     await ffmpeg.run(...args);
 
-    // 抽出データ取得
+    // 出力データ取得
     const data = ffmpeg.FS('readFile', outputName);
-    const mimeTypes = { mp3: 'audio/mpeg', wav: 'audio/wav', aac: 'audio/aac' };
-    generatedBlob = new Blob([data.buffer], { type: mimeTypes[format] || 'audio/mpeg' });
+    generatedBlob = new Blob([data.buffer], { type: 'video/mp4' });
 
-    // プレビュー表示
-    audioPlayer.src = URL.createObjectURL(generatedBlob);
+    outputVideo.src = URL.createObjectURL(generatedBlob);
     outputSize.textContent = `ファイルサイズ: ${CommonUtils.formatBytes(generatedBlob.size)}`;
     outputSection.style.display = 'block';
-    statusText.textContent = '抽出完了！';
+    statusText.textContent = '処理完了！';
 
-    const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'extracted';
-    outputFilename = `${baseName}.${format}`;
+    const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'video';
+    outputFilename = `${baseName}_edited.mp4`;
 
     ffmpeg.FS('unlink', inputName);
     ffmpeg.FS('unlink', outputName);
 
   } catch (error) {
     console.error(error);
-    alert('音声抽出に失敗しました。');
+    alert('動画の処理中にエラーが発生しました。');
     statusText.textContent = 'エラーが発生しました。';
   } finally {
-    extractBtn.disabled = false;
+    processBtn.disabled = false;
   }
 });
 
