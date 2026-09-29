@@ -1,6 +1,7 @@
 [
   {
     "id": "video-to-gif",
+    "category": "video-audio",
     "name": "動画GIF変換ツール",
     "description": "動画から指定区間をGIFアニメーションに変換。完全無料・ブラウザ完結で安全・高速に処理します。",
     "path": "./items/video-to-gif/",
@@ -9,6 +10,7 @@
   },
   {
     "id": "audio-extractor",
+    "category": "video-audio",
     "name": "動画から音声抽出ツール",
     "description": "動画から音声のみを抽出してMP3/WAVで保存。完全無料・ブラウザ完結のためサーバー送信はありません。",
     "path": "./items/audio-extractor/",
@@ -17,10 +19,38 @@
   },
   {
     "id": "video-trimmer",
+    "category": "video-audio",
     "name": "動画トリミング・無音化ツール",
     "description": "動画の区間切り出しや音声消去（無音化）が可能。完全無料・ブラウザ完結で個別・同時処理に対応。",
     "path": "./items/video-trimmer/",
     "icon": "scissors",
     "tags": ["動画", "トリミング", "ミュート"]
+  },
+  {
+    "id": "image-converter",
+    "category": "image",
+    "name": "画像フォーマット相互変換ツール",
+    "description": "WebP / JPG / PNG / AVIF の相互変換や一括圧縮、EXIF削除。ブラウザ完結で一瞬で変換。",
+    "path": "./items/image-converter/",
+    "icon": "image",
+    "tags": ["画像", "WebP", "PNG", "JPG", "変換", "EXIF削除"]
+  },
+  {
+    "id": "image-square-padding",
+    "category": "image",
+    "name": "画像リサイズ・正方形余白追加ツール",
+    "description": "SNS（Instagram・X）向けに、画像の比率を保ったまま白・黒・透明の余白をつけて正方形化。",
+    "path": "./items/image-square-padding/",
+    "icon": "maximize",
+    "tags": ["画像", "正方形", "余白", "リサイズ", "SNS"]
+  },
+  {
+    "id": "image-mosaic-redact",
+    "category": "image",
+    "name": "画像モザイク・黒塗り加工ツール",
+    "description": "顔や個人情報、機密箇所をドラッグ操作で素早く隠せる軽量プライバシー保護ツール。",
+    "path": "./items/image-mosaic-redact/",
+    "icon": "shield",
+    "tags": ["画像", "モザイク", "黒塗り", "プライバシー", "ぼかし"]
   }
 ]
