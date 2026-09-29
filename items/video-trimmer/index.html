@@ -99,7 +99,8 @@
 
     <h2>簡易動画トリミング・無音化ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-      動画の前後を切り詰めて必要な区間だけを取り出したり、音声を完全に取り除いて無音動画を作成します。
+      動画の必要な区間だけを切り抜く「トリミング」や、動画の音声を消去する「無音化（ミュート）」を行えます。<br>
+      トリミングのみ・無音化のみの単体利用はもちろん、両方を同時に適用することも可能です。
     </p>
 
     <!-- ファイルドロップエリア -->
@@ -124,10 +125,15 @@
         </div>
       </div>
 
-      <label class="checkbox-group">
-        <input type="checkbox" id="mute-checkbox">
-        <span>音声を削除する（無音化 / ミュート）</span>
-      </label>
+      <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: 6px; border: 1px solid var(--border-color);">
+        <label class="checkbox-group" style="margin-top: 0;">
+          <input type="checkbox" id="mute-checkbox">
+          <span>音声を削除する（無音動画として出力）</span>
+        </label>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; margin-left: 1.7rem;">
+          ※チェックを外したままにすると、元の動画の音声を残した状態で指定区間をトリミングします。
+        </p>
+      </div>
 
       <button id="process-btn" class="btn" style="width: 100%; margin-top: 1.5rem;">処理を開始する</button>
 
@@ -156,6 +162,6 @@
   </footer>
 
   <script src="../../assets/js/common.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
