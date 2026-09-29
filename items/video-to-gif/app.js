@@ -69,8 +69,8 @@ convertBtn.addEventListener('click', async () => {
     if (!ffmpeg) {
       ffmpeg = createFFmpeg({
         log: true,
-        // ★ここを core-st（シングルスレッド版）に変更
-        corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js'
+        // 公式の標準コアを使用
+        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
       });
       ffmpeg.setProgress(({ ratio }) => {
         const percent = Math.min(100, Math.round(ratio * 100));
