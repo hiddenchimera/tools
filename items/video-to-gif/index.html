@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ★この行を最優先で追加（GitHub PagesでSharedArrayBufferを有効化） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
+  <!-- ここを追加（安定したシングルスレッド動作版） -->
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
   <title>動画GIF変換ツール | Web Tools</title>
   <meta name="description" content="MP4やWebMなどの動画を高品質なGIFアニメーションに変換します。サーバー送信なしの完全クライアント処理。">
   <link rel="stylesheet" href="../../assets/css/common.css">
-  <!-- ここを追加（安定したシングルスレッド動作版） -->
-  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
   <style>
     .breadcrumb {
       font-size: 0.875rem;
