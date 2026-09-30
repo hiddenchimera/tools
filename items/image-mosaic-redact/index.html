@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像モザイク・黒塗り加工ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="画像の顔や個人情報、機密部分をドラッグ操作で素早く隠せる軽量プライバシー保護ツール。モザイク・ぼかし・黒塗りに対応。ブラウザ完結で安全。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .editor-section {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toolbar-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .toolbar select, .toolbar input[type="range"] {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .canvas-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111;
+      border-radius: 8px;
+      padding: 1rem;
+      overflow: auto;
+      max-height: 520px;
+    }
+    #image-canvas {
+      cursor: crosshair;
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .selection-box {
+      position: absolute;
+      border: 1px dashed #38bdf8;
+      background: rgba(56, 189, 248, 0.2);
+      pointer-events: none;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 画像モザイク・黒塗り加工ツール
+    </div>
+
+    <h2>画像モザイク・黒塗り加工ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      画像上の隠したい部分をドラッグで囲むだけで、モザイク・ぼかし・黒塗りを適用できます。<br>
+      SNS投稿前の個人情報保護や機密保持に。処理はすべて端末内で完結します。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🛡️</div>
+      <h3>画像ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（PNG, JPG, WebPなど）</p>
+    </div>
+
+    <!-- 編集パネル -->
+    <div id="editor-section" class="editor-section">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <label for="mask-type">加工タイプ</label>
+          <select id="mask-type">
+            <option value="mosaic">モザイク</option>
+            <option value="blur">ぼかし</option>
+            <option value="black">黒塗り</option>
+            <option value="white">白塗り</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group" id="strength-group">
+          <label for="mask-strength">強度: <span id="strength-val">15</span></label>
+          <input type="range" id="mask-strength" min="5" max="40" value="15">
+        </div>
+
+        <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+          <button id="undo-btn" class="btn-secondary" title="直前の加工を取り消す">元に戻す (Undo)</button>
+          <button id="reset-btn" class="btn-secondary" style="color: #f87171;">最初に戻す</button>
+        </div>
+      </div>
+
+      <div class="canvas-container" id="canvas-wrapper">
+        <canvas id="image-canvas"></canvas>
+        <div id="selection-box" class="selection-box"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">
+          ※隠したい範囲をマウス（またはタッチ）でドラッグして指定してください。
+        </span>
+        <button id="download-btn" class="btn">加工済み画像を保存</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
