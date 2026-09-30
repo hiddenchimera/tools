@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像リサイズ・正方形余白追加ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="画像の比率を維持したまま、白・黒・透明・ぼかし等の余白を追加してSNS向け正方形（1:1）画像に変換します。ブラウザ完結で安全・高速。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .editor-section {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .preview-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #111;
+      background-image: 
+        linear-gradient(45deg, #1e1e1e 25%, transparent 25%), 
+        linear-gradient(-45deg, #1e1e1e 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #1e1e1e 75%), 
+        linear-gradient(-45deg, transparent 75%, #1e1e1e 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    #preview-canvas {
+      max-width: 100%;
+      max-height: 380px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .input-group select, .input-group input {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .color-picker-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .color-picker-wrapper input[type="color"] {
+      width: 44px;
+      height: 38px;
+      padding: 0.1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 画像リサイズ・正方形余白追加ツール
+    </div>
+
+    <h2>画像リサイズ・正方形余白追加ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      画像の縦横比を崩さず、お好みの余白（白・黒・透明・ぼかし）を付加してSNS向けの正方形画像（1:1）を作成します。<br>
+      ブラウザ内で瞬時に生成され、サーバーへの送信は一切行われません。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📐</div>
+      <h3>画像ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（PNG, JPG, WebPなど）</p>
+    </div>
+
+    <!-- 編集設定パネル -->
+    <div id="editor-section" class="editor-section">
+      <div class="preview-container">
+        <canvas id="preview-canvas"></canvas>
+      </div>
+
+      <div class="controls-grid">
+        <div class="input-group">
+          <label for="bg-type">背景（余白）のスタイル</label>
+          <select id="bg-type">
+            <option value="white">白背景 (#FFFFFF)</option>
+            <option value="black">黒背景 (#000000)</option>
+            <option value="transparent">透明 (PNG出力)</option>
+            <option value="custom">カスタムカラー指定</option>
+            <option value="blur">元画像のぼかし余白</option>
+          </select>
+        </div>
+
+        <div class="input-group" id="custom-color-group" style="display: none;">
+          <label for="custom-color">カスタム背景色</label>
+          <div class="color-picker-wrapper">
+            <input type="color" id="custom-color" value="#ffffff">
+            <span id="custom-color-hex" style="font-size: 0.85rem; color: var(--text-muted);">#FFFFFF</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="padding-scale">余白の広さ (パディング: <span id="padding-val">0%</span>)</label>
+          <input type="range" id="padding-scale" min="0" max="30" value="0">
+        </div>
+
+        <div class="input-group">
+          <label for="export-format">保存形式</label>
+          <select id="export-format">
+            <option value="image/png">PNG（透明保持・高画質）</option>
+            <option value="image/jpeg">JPG（写真・軽量）</option>
+            <option value="image/webp">WebP（次世代・Web最適化）</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="download-btn" class="btn" style="width: 100%; margin-top: 1rem;">正方形画像をダウンロード</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
