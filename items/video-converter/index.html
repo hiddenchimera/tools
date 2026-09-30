@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/coi-serviceworker.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+  <title>動画フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="MOV・WebM・MP4・MKV形式の動画をブラウザ上で相互変換。iPhone撮影動画のMP4化やWeb用変換に対応。サーバー送信なしで安全・安心。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .control-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .form-group select {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .video-preview-wrapper {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video-preview-wrapper video {
+      max-width: 100%;
+      max-height: 360px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .notice-box {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 動画フォーマット変換ツール
+    </div>
+
+    <h2>動画フォーマット変換ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      MOV、WebM、MP4などの動画形式をブラウザ上で相互変換します。<br>
+      iPhoneで撮ったMOV動画のMP4変換や、Webサイト用の軽量WebM作成に最適です。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
+      <h3>動画ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（MOV, WebM, MP4, MKV, AVIなど）</p>
+    </div>
+
+    <!-- 設定・変換パネル -->
+    <div id="control-panel" class="control-panel">
+      <div class="video-preview-wrapper">
+        <video id="video-preview" controls></video>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="target-format">出力フォーマット</label>
+          <select id="target-format">
+            <option value="mp4">MP4（H.264 / 汎用性が高く推奨）</option>
+            <option value="webm">WebM（VP9 / Web向け高圧縮）</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quality-preset">品質とエンコード設定</label>
+          <select id="quality-preset">
+            <option value="fast">標準・高速（おすすめ）</option>
+            <option value="high">高画質（処理時間やや長め）</option>
+            <option value="small">ファイルサイズ優先（軽量化）</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="convert-btn" class="btn" style="width: 100%;">動画の変換を開始</button>
+
+      <div class="notice-box">
+        💡 <strong>安心・安全</strong>: 動画データはサーバーに一切送信されず、お使いの端末（CPU）で処理されます。<br>
+        ※ブラウザ負荷を考慮し、1〜3分程度（100MB前後まで）の動画でのご利用を推奨します。
+      </div>
+
+      <div id="progress-wrapper" class="progress-wrapper">
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="status-text" class="status-text">変換処理中...</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
