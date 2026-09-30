@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画像フォーマット相互変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="WebP・JPG・PNG・AVIFをブラウザ上で相互変換・一括圧縮。サーバー送信なし、EXIF情報自動削除で安全・高速に処理します。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .settings-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .input-group select, .input-group input[type="range"] {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      overflow: hidden;
+    }
+    .file-thumb {
+      width: 42px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: #000;
+      flex-shrink: 0;
+    }
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    .file-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      background: var(--border-color);
+      color: var(--text-color);
+    }
+    .badge.success {
+      background: #059669;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 画像フォーマット相互変換ツール
+    </div>
+
+    <h2>画像フォーマット相互変換ツール</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      WebP / JPG / PNG / AVIF 形式の相互変換・圧縮を行えます。<br>
+      複数ファイルの一括変換に対応。EXIF情報（位置情報・撮影データ）は自動で消去され安全です。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🖼️</div>
+      <h3>画像ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（複数選択可 / WebP, JPG, PNG, AVIFなど）</p>
+    </div>
+
+    <!-- 設定・変換パネル -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="options-grid">
+        <div class="input-group">
+          <label for="target-format">出力フォーマット</label>
+          <select id="target-format">
+            <option value="image/webp">WebP（軽量・Web推奨）</option>
+            <option value="image/jpeg">JPG（標準・写真向け）</option>
+            <option value="image/png">PNG（ロスレス・透過保持）</option>
+            <option value="image/avif">AVIF（高圧縮率）</option>
+          </select>
+        </div>
+
+        <div class="input-group" id="quality-group">
+          <label for="quality-range">画質 / 圧縮率: <span id="quality-val">90%</span></label>
+          <input type="range" id="quality-range" min="10" max="100" value="90">
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <h4 style="margin: 0;">対象ファイル一覧 (<span id="file-count">0</span>件)</h4>
+        <button id="clear-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; text-decoration: underline;">すべてクリア</button>
+      </div>
+
+      <ul id="file-list" class="file-list"></ul>
+
+      <button id="convert-btn" class="btn" style="width: 100%; margin-top: 1rem;">一括変換を実行する</button>
+
+      <div id="download-all-wrapper" style="display: none; margin-top: 1.5rem; text-align: center;">
+        <button id="download-all-btn" class="btn" style="background: #059669;">すべての変換済み画像を保存</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
