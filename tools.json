@@ -27,6 +27,15 @@
     "tags": ["動画", "トリミング", "ミュート"]
   },
   {
+    "id": "video-converter",
+    "category": "video-audio",
+    "name": "動画フォーマット変換ツール",
+    "description": "MOV・WebM・MP4の相互変換。iPhone動画（MOV）のMP4化やWeb用WebM化を完全ローカルで高速処理。",
+    "path": "./items/video-converter/",
+    "icon": "repeat",
+    "tags": ["動画", "MOV", "MP4", "WebM", "変換"]
+  },
+  {
     "id": "image-converter",
     "category": "image",
     "name": "画像フォーマット相互変換ツール",
