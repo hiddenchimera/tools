@@ -7,7 +7,7 @@
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
   <title>動画・音声フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・画像背景）にも対応。完全クライアント処理で安心。">
+  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・指定色・画像背景）にも対応。完全クライアント処理で安心。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -88,7 +88,7 @@
       background: rgba(255, 255, 255, 0.1);
       margin-bottom: 0.5rem;
     }
-    /* 背景画像設定エリア用スタイル */
+    /* 背景設定エリア用スタイル */
     .bg-options-panel {
       display: none;
       background: rgba(255, 255, 255, 0.02);
@@ -118,6 +118,26 @@
       display: none;
       border: 1px solid var(--border-color);
     }
+    .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .color-picker-wrapper input[type="color"] {
+      width: 44px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: none;
+      cursor: pointer;
+    }
+    .color-code-text {
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -136,7 +156,7 @@
     <h2>動画・音声フォーマット変換ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
       動画（MP4/MOV/WebM等）や音声（MP3/WAV/M4A等）を相互変換します。<br>
-      音声からSNS・動画サイト投稿用の動画化（黒・白・画像背景）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
+      音声からSNS・動画サイト投稿用の動画化（黒・白・指定色・画像背景）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
     </p>
 
     <!-- ファイルドロップエリア -->
@@ -194,11 +214,22 @@
           <select id="bg-type-select">
             <option value="black">黒背景（デフォルト・最速）</option>
             <option value="white">白背景</option>
+            <option value="color">指定した色を使用</option>
             <option value="image">指定した画像を使用</option>
           </select>
         </div>
 
-        <div id="bg-image-section" style="display: none;">
+        <!-- 指定色選択エリア -->
+        <div id="bg-color-section" style="display: none; margin-top: 0.75rem;">
+          <label style="font-size: 0.85rem; color: var(--text-muted);">背景色を選択</label>
+          <div class="color-picker-wrapper">
+            <input type="color" id="bg-color-input" value="#1a202c">
+            <span id="bg-color-text" class="color-code-text">#1a202c</span>
+          </div>
+        </div>
+
+        <!-- 画像選択エリア -->
+        <div id="bg-image-section" style="display: none; margin-top: 0.75rem;">
           <input type="file" id="bg-image-input" accept="image/*" style="display: none;">
           <div id="bg-image-dropzone" class="bg-image-dropzone">
             <div id="bg-image-label">🖼️ ここをクリックまたは画像をドロップして選択</div>
