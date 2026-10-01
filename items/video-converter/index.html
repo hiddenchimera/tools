@@ -7,7 +7,7 @@
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
   <title>動画フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="MOV・WebM・MP4・MKV形式の動画をブラウザ上で相互変換。iPhone撮影動画のMP4化やWeb用変換に対応。サーバー送信なしで安全・安心。">
+  <meta name="description" content="MOV・WebM・MP4・MKV・AVI・GIF・MP3等への相互変換。サーバー送信なしで安全・高速に処理します。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -89,15 +89,15 @@
 
     <h2>動画フォーマット変換ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-      MOV、WebM、MP4などの動画形式をブラウザ上で相互変換します。<br>
-      iPhoneで撮ったMOV動画のMP4変換や、Webサイト用の軽量WebM作成に最適です。
+      MOV、WebM、MP4、MKV、AVIなどの動画形式、GIFアニメ、音声形式（MP3/WAV/AAC）へ相互変換します。<br>
+      ブラウザ完結のためサーバー送信なしで安全に処理されます。
     </p>
 
     <!-- ファイルドロップエリア -->
     <div id="dropzone" class="dropzone">
       <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
       <h3>動画ファイルをドラッグ＆ドロップ</h3>
-      <p>またはクリックして選択（MOV, WebM, MP4, MKV, AVIなど）</p>
+      <p>またはクリックして選択（MOV, WebM, MP4, MKV, AVI, FLVなど）</p>
     </div>
 
     <!-- 設定・変換パネル -->
@@ -110,26 +110,39 @@
         <div class="form-group">
           <label for="target-format">出力フォーマット</label>
           <select id="target-format">
-            <option value="mp4">MP4（H.264 / 汎用性が高く推奨）</option>
-            <option value="webm">WebM（VP9 / Web向け高圧縮）</option>
+            <optgroup label="動画フォーマット">
+              <option value="mp4">MP4（H.264 / 汎用推奨）</option>
+              <option value="webm">WebM（VP9 / Web高圧縮）</option>
+              <option value="mov">MOV（QuickTime形式）</option>
+              <option value="mkv">MKV（Matroskaコンテナ）</option>
+              <option value="avi">AVI（レガシー機器互換）</option>
+            </optgroup>
+            <optgroup label="アニメーション">
+              <option value="gif">GIFアニメーション</option>
+            </optgroup>
+            <optgroup label="音声のみ抽出">
+              <option value="mp3">MP3（標準音声）</option>
+              <option value="wav">WAV（非圧縮・ロスレス）</option>
+              <option value="aac">AAC / M4A（高音質圧縮）</option>
+            </optgroup>
           </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="quality-group">
           <label for="quality-preset">品質とエンコード設定</label>
           <select id="quality-preset">
-            <option value="fast">標準・高速（おすすめ）</option>
-            <option value="high">高画質（処理時間やや長め）</option>
+            <option value="fast">標準・高速（推奨）</option>
+            <option value="high">高画質 / 高音質</option>
             <option value="small">ファイルサイズ優先（軽量化）</option>
           </select>
         </div>
       </div>
 
-      <button id="convert-btn" class="btn" style="width: 100%;">動画の変換を開始</button>
+      <button id="convert-btn" class="btn" style="width: 100%;">変換を開始する</button>
 
       <div class="notice-box">
-        💡 <strong>安心・安全</strong>: 動画データはサーバーに一切送信されず、お使いの端末（CPU）で処理されます。<br>
-        ※ブラウザ負荷を考慮し、1〜3分程度（100MB前後まで）の動画でのご利用を推奨します。
+        💡 <strong>完全ローカル処理</strong>: 動画データはサーバーに一切送信されず、お使いの端末内で処理されます。<br>
+        ※長時間の動画や4K動画は処理に時間がかかるため、短尺動画やSNS用クリップでの利用を推奨します。
       </div>
 
       <div id="progress-wrapper" class="progress-wrapper">
