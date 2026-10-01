@@ -3,15 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>完全無料・ブラウザ完結型 メディアツール | Tools</title>
-  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型のメディアツール集。サーバー送信なしで安全にGIF変換、音声抽出、トリミング、画像変換が可能です。">
-  
-  <!-- OGP / SEO設定 -->
-  <meta property="og:title" content="完全無料・ブラウザ完結型 メディアツール">
-  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声・画像のメディアツール群。">
-  <meta property="og:type" content="website">
+  <title>完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="画像・動画・音声のフォーマット変換、SNS向け動画自動分割などをブラウザ上だけで安全に実行できる完全無料のWebツール集。サーバー送信ゼロで安心・高速。">
+  <link rel="stylesheet" href="./tools/assets/css/common.css">
+  <style>
+    .hero-section {
+      text-align: center;
+      padding: 2.5rem 1rem 2rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.825rem;
+      padding: 0.35rem 0.85rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      border-radius: 9999px;
+    }
 
-  <link rel="stylesheet" href="./assets/css/common.css">
+    /* ツールカードグリッド */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0 3rem;
+    }
+    .tool-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .tool-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-color);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .tool-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+    }
+    .tool-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
+    .tool-description {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
+    }
+    .tool-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .tool-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    .tool-btn {
+      width: 100%;
+      text-align: center;
+      padding: 0.6rem 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--primary-color);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .tool-card:hover .tool-btn {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    /* 共通特徴セクション */
+    .features-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .features-header h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.35rem;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .feature-item h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+      color: var(--text-color);
+    }
+    .feature-item p {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
 </head>
 <body>
 
@@ -22,22 +151,96 @@
   </header>
 
   <main>
-    <section class="hero">
-      <h1>完全無料・ブラウザ完結型 メディアツール</h1>
-      <p>会員登録・サーバー送信なし。すべての編集・変換がお使いの端末内で安全に完結します。</p>
+    <section class="hero-section">
+      <div class="privacy-badge">
+        <span>🛡️</span>
+        <span>サーバー送信ゼロ・端末内ローカル処理</span>
+      </div>
+      <h1 class="hero-title">安全・高速にメディアを加工・変換</h1>
+      <p class="hero-desc">
+        動画・音声・画像の変換や編集が、ブラウザ上だけで完結。<br>
+        データが外部サーバーへアップロードされることは一切ないため、プライベートなファイルも安心・安全に処理できます。
+      </p>
     </section>
 
-    <!-- カテゴリ1: 動画・音声の編集・変換ツール -->
-    <section class="category-section">
-      <h2 class="category-title">1. 動画・音声の編集・変換ツール</h2>
-      <div id="video-tool-container" class="tool-grid"></div>
+    <!-- ツール一覧カード -->
+    <section class="tools-grid">
+
+      <!-- 1. 動画自動分割ツール -->
+      <a href="./tools/items/video-splitter/" class="tool-card">
+        <div>
+          <div class="tool-icon">✂️</div>
+          <div class="tool-title">動画自動分割ツール</div>
+          <p class="tool-description">
+            長尺動画をX（旧Twitter）の140秒制限やLINEアルバムの5分制限に合わせて自動で均等カット。会話の途切れを防ぐのりしろ重複や個別ダウンロードに対応。
+          </p>
+          <div class="tool-tags">
+            <span class="tool-tag">X（140秒）対応</span>
+            <span class="tool-tag">LINE（5分）対応</span>
+            <span class="tool-tag">のりしろ機能</span>
+            <span class="tool-tag">高精度 / 高速</span>
+          </div>
+        </div>
+        <div class="tool-btn">ツールを開く →</div>
+      </a>
+
+      <!-- 2. 動画・音声フォーマット変換ツール -->
+      <a href="./tools/items/video-converter/" class="tool-card">
+        <div>
+          <div class="tool-icon">🔄</div>
+          <div class="tool-title">動画・音声フォーマット変換</div>
+          <p class="tool-description">
+            MP4・MOV・WebM・MP3・WAVなどの動画・音声を相互変換。音声ファイルに静止画や透過PNG、背景色を合成した動画作成（HD 16:9）にも対応。
+          </p>
+          <div class="tool-tags">
+            <span class="tool-tag">動画 ⇄ 音声</span>
+            <span class="tool-tag">音声の動画化</span>
+            <span class="tool-tag">透過PNG合成</span>
+            <span class="tool-tag">WebM / MP4</span>
+          </div>
+        </div>
+        <div class="tool-btn">ツールを開く →</div>
+      </a>
+
+      <!-- 3. 画像フォーマット変換ツール -->
+      <a href="./tools/items/image-converter/" class="tool-card">
+        <div>
+          <div class="tool-icon">🖼️</div>
+          <div class="tool-title">画像フォーマット変換</div>
+          <p class="tool-description">
+            WebP・PNG・JPEGなどの画像フォーマットを瞬時に相互変換。品質調整によるファイルサイズの軽量化・圧縮処理をブラウザ上で実行します。
+          </p>
+          <div class="tool-tags">
+            <span class="tool-tag">WebP ⇄ PNG/JPG</span>
+            <span class="tool-tag">容量圧縮</span>
+            <span class="tool-tag">Canvas高速処理</span>
+          </div>
+        </div>
+        <div class="tool-btn">ツールを開く →</div>
+      </a>
+
     </section>
 
-    <!-- カテゴリ2: 画像・メディアの変換・最適化ツール -->
-    <section class="category-section">
-      <h2 class="category-title">2. 画像・メディアの変換・最適化ツール</h2>
-      <p class="category-desc">ブラウザ標準機能を使用し、完全に端末内で高速かつ安全に処理します。</p>
-      <div id="image-tool-container" class="tool-grid"></div>
+    <!-- 特徴・安全性説明 -->
+    <section class="features-section">
+      <div class="features-header">
+        <h3>当メディアツールの特徴</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">インストール不要、アカウント登録不要ですぐに使えます。</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item">
+          <h4>🔒 プライバシー保護</h4>
+          <p>WebAssemblyおよびHTML5技術により、すべての変換・分割がお使いの端末内でのみ行われます。ファイルが外部に漏洩する心配はありません。</p>
+        </div>
+        <div class="feature-item">
+          <h4>⚡ 待ち時間ゼロ</h4>
+          <p>サーバーへのアップロードやダウンロードの通信時間がかからないため、回線速度に左右されず即座に処理を開始できます。</p>
+        </div>
+        <div class="feature-item">
+          <h4>💸 完全無料・無制限</h4>
+          <p>会員登録や課金機能はありません。すべてのツールを無料・無制限でご利用いただけます。</p>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -45,64 +248,6 @@
     <p>&copy; Hidden Chimera All Rights Reserved.</p>
   </footer>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const videoContainer = document.getElementById('video-tool-container');
-      const imageContainer = document.getElementById('image-tool-container');
-
-      // アイコンのマッピング定義
-      const iconMap = {
-        film: '🎬',
-        music: '🎵',
-        scissors: '✂️',
-        repeat: '🔄',
-        image: '🖼️',
-        maximize: '📐',
-        shield: '🛡️',
-        default: '🔧'
-      };
-
-      const renderCard = (tool) => {
-        const icon = iconMap[tool.icon] || iconMap.default;
-        const tagsHtml = (tool.tags || [])
-          .map(tag => `<span class="tool-tag">${tag}</span>`)
-          .join('');
-
-        return `
-          <a href="${tool.path}" class="tool-card">
-            <div class="tool-card-icon">${icon}</div>
-            <div class="tool-card-title">${tool.name}</div>
-            <p class="tool-card-desc">${tool.description}</p>
-            <div class="tool-card-tags">${tagsHtml}</div>
-          </a>
-        `;
-      };
-
-      try {
-        const response = await fetch('./tools.json');
-        if (!response.ok) throw new Error('tools.json の取得に失敗しました');
-        
-        const tools = await response.json();
-
-        let videoHtml = '';
-        let imageHtml = '';
-
-        tools.forEach(tool => {
-          if (tool.category === 'video-audio') {
-            videoHtml += renderCard(tool);
-          } else if (tool.category === 'image') {
-            imageHtml += renderCard(tool);
-          }
-        });
-
-        videoContainer.innerHTML = videoHtml || '<p style="color: var(--text-muted);">ツールがありません。</p>';
-        imageContainer.innerHTML = imageHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
-
-      } catch (error) {
-        console.error(error);
-        videoContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
-      }
-    });
-  </script>
+  <script src="./tools/assets/js/common.js"></script>
 </body>
 </html>
