@@ -69,5 +69,12 @@ const CommonUtils = {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  },
+
+  /**
+   * File / Blob を FFmpeg FS書き込み用の Uint8Array に変換する
+   */
+  async fetchFile(file) {
+    return new Uint8Array(await file.arrayBuffer());
   }
 };
