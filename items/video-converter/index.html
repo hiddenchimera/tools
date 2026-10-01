@@ -192,6 +192,44 @@
     .btn-cancel:hover {
       background-color: #dc2626;
     }
+
+    /* 下部の控えめな仕様説明欄 */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -326,6 +364,38 @@
         <button id="cancel-btn" class="btn-cancel" type="button">✖ 変換を中止する</button>
       </div>
     </div>
+
+    <!-- 控えめな対応ファイル・技術仕様アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・変換仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>動画:</strong> MP4, MOV, WebM, MKV, AVI, FLV, WMV, M4V</li>
+            <li><strong>音声:</strong> MP3, WAV, M4A, AAC, OGG, FLAC, WMA</li>
+            <li><strong>背景画像:</strong> PNG（アルファ透過対応）, JPG/JPEG, WebP, GIF, BMP</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>出力対応フォーマット</h4>
+          <ul>
+            <li><strong>動画:</strong> MP4 (H.264/AAC), WebM (VP8/Vorbis), MOV, MKV, AVI</li>
+            <li><strong>音声:</strong> MP3, WAV (リニアPCM 16bit), AAC</li>
+            <li><strong>アニメーション:</strong> GIF (自動パレット生成・高画質ディザリング)</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>音声の動画化仕様</h4>
+          <ul>
+            <li>解像度: 1280×720 (HD 16:9)</li>
+            <li>フレームレート: 25〜30 fps</li>
+            <li>画像比率: 原寸比率を維持して中央配置（はみ出しなし）</li>
+            <li>透過処理: アルファチャンネル付きPNGの背景色指定合成に対応</li>
+          </ul>
+        </div>
+      </div>
+    </details>
   </main>
 
   <footer>
