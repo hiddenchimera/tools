@@ -3,6 +3,7 @@ let currentFile = null;
 let currentBgImageFile = null;
 let isLoaded = false;
 let isAudioInput = false;
+let isImageTransparent = false; // 透過PNG判定フラグ
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
@@ -28,6 +29,13 @@ const bgImageInput = document.getElementById('bg-image-input');
 const bgImageDropzone = document.getElementById('bg-image-dropzone');
 const bgImageLabel = document.getElementById('bg-image-label');
 const bgImagePreview = document.getElementById('bg-image-preview');
+
+// 透過PNG用エレメント
+const bgPngBackdropSection = document.getElementById('bg-png-backdrop-section');
+const pngBackdropType = document.getElementById('png-backdrop-type');
+const pngCustomColorContainer = document.getElementById('png-custom-color-container');
+const pngBackdropColorInput = document.getElementById('png-backdrop-color-input');
+const pngBackdropColorText = document.getElementById('png-backdrop-color-text');
 
 // 拡張子リスト
 const VIDEO_EXTS = ['mp4', 'mov', 'webm', 'mkv', 'avi', 'flv', 'wmv', 'm4v'];
@@ -78,9 +86,18 @@ CommonUtils.initDropzone(dropzone, (file) => {
   convertBtn.disabled = false;
 }, '*');
 
-// カラーピッカーの値変更
+// 単色背景カラーピッカーの値変更
 bgColorInput.addEventListener('input', () => {
   bgColorText.textContent = bgColorInput.value;
+});
+
+// 透過PNG用背景カラーピッカーの値変更
+pngBackdropColorInput.addEventListener('input', () => {
+  pngBackdropColorText.textContent = pngBackdropColorInput.value;
+});
+
+pngBackdropType.addEventListener('change', () => {
+  pngCustomColorContainer.style.display = (pngBackdropType.value === 'color') ? 'block' : 'none';
 });
 
 // 背景画像の受付（クリック＆ドラッグ＆ドロップ）
@@ -109,7 +126,8 @@ bgImageInput.addEventListener('change', (e) => {
   }
 });
 
-function handleBgImageFile(file) {
+// 画像ファイルの処理 ＆ 透過判定
+async function handleBgImageFile(file) {
   if (!file.type.startsWith('image/')) {
     alert('画像ファイル（PNG, JPG, WebP等）を選択してください。');
     return;
@@ -118,6 +136,59 @@ function handleBgImageFile(file) {
   bgImagePreview.src = URL.createObjectURL(file);
   bgImagePreview.style.display = 'inline-block';
   bgImageLabel.textContent = `選択中: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
+
+  // 透過ピクセルを含むか判定
+  isImageTransparent = await checkIfImageHasTransparency(file);
+
+  if (isImageTransparent) {
+    bgPngBackdropSection.style.display = 'block';
+  } else {
+    bgPngBackdropSection.style.display = 'none';
+  }
+}
+
+// Canvasを使った透過チェック
+function checkIfImageHasTransparency(file) {
+  return new Promise((resolve) => {
+    // JPGなどは透過があり得ないのでスキップ
+    if (file.type === 'image/jpeg') {
+      return resolve(false);
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      // 高速化のため最大300px程度にリサイズしてサンプリング
+      const maxDim = 300;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+
+      try {
+        const imgData = ctx.getImageData(0, 0, w, h).data;
+        // アルファ値（4バイトごと）をチェック
+        for (let i = 3; i < imgData.length; i += 4) {
+          if (imgData[i] < 255) {
+            return resolve(true); // 透過ピクセルあり
+          }
+        }
+        resolve(false);
+      } catch (e) {
+        resolve(false);
+      }
+    };
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
 }
 
 // 背景タイプセレクト切り替え
@@ -208,7 +279,7 @@ convertBtn.addEventListener('click', async () => {
 
     // 背景画像がある場合は書き込み
     if (isAudioInput && isTargetVideo && bgTypeSelect.value === 'image' && currentBgImageFile) {
-      const imgExt = (currentBgImageFile.name.substring(currentBgImageFile.name.lastIndexOf('.') + 1) || 'jpg').toLowerCase();
+      const imgExt = (currentBgImageFile.name.substring(currentBgImageFile.name.lastIndexOf('.') + 1) || 'png').toLowerCase();
       inputBgImageName = `bg_image.${imgExt}`;
       const imgData = new Uint8Array(await currentBgImageFile.arrayBuffer());
       ffmpeg.FS('writeFile', inputBgImageName, imgData);
@@ -228,28 +299,52 @@ convertBtn.addEventListener('click', async () => {
       const aCodec = targetFormat === 'webm' ? 'libopus' : 'aac';
 
       if (bgType === 'image' && inputBgImageName) {
-        // 画像ループ合成（アスペクト比維持のパディング）
-        ffmpegArgs.push(
-          '-loop', '1',
-          '-i', inputBgImageName,
-          '-i', inputName,
-          '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:black',
-          '-c:v', vCodec,
-          '-tune', 'stillimage',
-          '-preset', 'ultrafast',
-          '-c:a', aCodec,
-          '-b:a', '192k',
-          '-pix_fmt', 'yuv420p',
-          '-shortest',
-          outputName
-        );
+        if (isImageTransparent) {
+          // 透過PNGの場合: ベース背景色を生成し、その上に画像を中央オーバーレイ
+          let baseColor = 'black';
+          if (pngBackdropType.value === 'white') {
+            baseColor = 'white';
+          } else if (pngBackdropType.value === 'color') {
+            baseColor = pngBackdropColorInput.value.replace('#', '0x');
+          }
+
+          ffmpegArgs.push(
+            '-f', 'lavfi', '-i', `color=c=${baseColor}:s=1280x720:r=30`,
+            '-loop', '1', '-i', inputBgImageName,
+            '-i', inputName,
+            '-filter_complex', '[1:v]scale=1280:720:force_original_aspect_ratio=decrease[fg];[0:v][fg]overlay=(W-w)/2:(H-h)/2',
+            '-c:v', vCodec,
+            '-tune', 'stillimage',
+            '-preset', 'ultrafast',
+            '-c:a', aCodec,
+            '-b:a', '192k',
+            '-pix_fmt', 'yuv420p',
+            '-shortest',
+            outputName
+          );
+        } else {
+          // 不透過画像の場合: scale + pad (黒帯) で高速合成
+          ffmpegArgs.push(
+            '-loop', '1',
+            '-i', inputBgImageName,
+            '-i', inputName,
+            '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:black',
+            '-c:v', vCodec,
+            '-tune', 'stillimage',
+            '-preset', 'ultrafast',
+            '-c:a', aCodec,
+            '-b:a', '192k',
+            '-pix_fmt', 'yuv420p',
+            '-shortest',
+            outputName
+          );
+        }
       } else {
         // 単色背景（黒・白・指定色）
         let colorParam = 'black';
         if (bgType === 'white') {
           colorParam = 'white';
         } else if (bgType === 'color') {
-          // #1a202c -> 0x1a202c 形式に変換
           colorParam = bgColorInput.value.replace('#', '0x');
         }
 
