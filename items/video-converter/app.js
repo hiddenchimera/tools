@@ -20,6 +20,9 @@ const statusText = document.getElementById('status-text');
 // 背景選択用エレメント
 const bgOptionsPanel = document.getElementById('bg-options-panel');
 const bgTypeSelect = document.getElementById('bg-type-select');
+const bgColorSection = document.getElementById('bg-color-section');
+const bgColorInput = document.getElementById('bg-color-input');
+const bgColorText = document.getElementById('bg-color-text');
 const bgImageSection = document.getElementById('bg-image-section');
 const bgImageInput = document.getElementById('bg-image-input');
 const bgImageDropzone = document.getElementById('bg-image-dropzone');
@@ -75,6 +78,11 @@ CommonUtils.initDropzone(dropzone, (file) => {
   convertBtn.disabled = false;
 }, '*');
 
+// カラーピッカーの値変更
+bgColorInput.addEventListener('input', () => {
+  bgColorText.textContent = bgColorInput.value;
+});
+
 // 背景画像の受付（クリック＆ドラッグ＆ドロップ）
 bgImageDropzone.addEventListener('click', () => bgImageInput.click());
 
@@ -114,11 +122,9 @@ function handleBgImageFile(file) {
 
 // 背景タイプセレクト切り替え
 bgTypeSelect.addEventListener('change', () => {
-  if (bgTypeSelect.value === 'image') {
-    bgImageSection.style.display = 'block';
-  } else {
-    bgImageSection.style.display = 'none';
-  }
+  const type = bgTypeSelect.value;
+  bgColorSection.style.display = (type === 'color') ? 'block' : 'none';
+  bgImageSection.style.display = (type === 'image') ? 'block' : 'none';
 });
 
 // フォーマット切り替え時のUI制御
@@ -138,7 +144,9 @@ function updateUIForFormat() {
   // 「音声ファイル」かつ「動画形式への変換」の時のみ背景設定パネルを表示
   if (isAudioInput && isTargetVideo) {
     bgOptionsPanel.style.display = 'block';
-    bgImageSection.style.display = (bgTypeSelect.value === 'image') ? 'block' : 'none';
+    const type = bgTypeSelect.value;
+    bgColorSection.style.display = (type === 'color') ? 'block' : 'none';
+    bgImageSection.style.display = (type === 'image') ? 'block' : 'none';
   } else {
     bgOptionsPanel.style.display = 'none';
   }
@@ -220,7 +228,7 @@ convertBtn.addEventListener('click', async () => {
       const aCodec = targetFormat === 'webm' ? 'libopus' : 'aac';
 
       if (bgType === 'image' && inputBgImageName) {
-        // 画像をループさせてアスペクト比を保ったまま1280x720の画面にパディング合成
+        // 画像ループ合成（アスペクト比維持のパディング）
         ffmpegArgs.push(
           '-loop', '1',
           '-i', inputBgImageName,
@@ -236,10 +244,17 @@ convertBtn.addEventListener('click', async () => {
           outputName
         );
       } else {
-        // 単色背景（黒または白）
-        const colorName = (bgType === 'white') ? 'white' : 'black';
+        // 単色背景（黒・白・指定色）
+        let colorParam = 'black';
+        if (bgType === 'white') {
+          colorParam = 'white';
+        } else if (bgType === 'color') {
+          // #1a202c -> 0x1a202c 形式に変換
+          colorParam = bgColorInput.value.replace('#', '0x');
+        }
+
         ffmpegArgs.push(
-          '-f', 'lavfi', '-i', `color=c=${colorName}:s=1280x720:r=30`,
+          '-f', 'lavfi', '-i', `color=c=${colorParam}:s=1280x720:r=30`,
           '-i', inputName,
           '-c:v', vCodec,
           '-tune', 'stillimage',
