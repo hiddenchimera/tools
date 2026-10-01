@@ -160,7 +160,6 @@ convertBtn.addEventListener('click', async () => {
         const bitrates = { fast: '128k', high: '256k', small: '96k' };
         ffmpegArgs.push(
           '-vn',
-          '-c:a', 'libmp3lame',
           '-b:a', bitrates[preset] || '128k',
           outputName
         );
