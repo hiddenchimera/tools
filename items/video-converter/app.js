@@ -241,12 +241,9 @@ function updateProgress(percent) {
   if (isCancelled) return;
   const clamped = Math.min(99, Math.max(0, Math.round(percent)));
   
-  // xを 0.0〜1.0 に正規化
   const x = clamped / 100;
-  // 放物線イージング: y = 1 - (1 - x)^2
   const curvedPercent = (1 - Math.pow(1 - x, 2)) * 100;
 
-  // バーの見た目幅は曲線補正、数字テキストは正確な実進捗を表示
   progressBar.style.width = `${curvedPercent.toFixed(1)}%`;
   statusText.textContent = `変換中... ${clamped}%`;
 }
@@ -286,6 +283,7 @@ cancelBtn.addEventListener('click', () => {
       progressWrapper.style.display = 'none';
       convertBtn.disabled = false;
       cancelBtn.disabled = false;
+      cancelBtn.style.display = 'none';
       alert('変換処理を中止しました。設定を変更してやり直すことができます。');
     }, 400);
   }
@@ -306,7 +304,11 @@ convertBtn.addEventListener('click', async () => {
 
   isCancelled = false;
   convertBtn.disabled = true;
+  
+  // 処理開始時はキャンセルボタンを有効化して表示
   cancelBtn.disabled = false;
+  cancelBtn.style.display = 'block';
+  
   progressWrapper.style.display = 'block';
   progressBar.style.width = '0%';
   statusText.textContent = '準備中...';
@@ -518,6 +520,10 @@ convertBtn.addEventListener('click', async () => {
 
     if (isCancelled) return;
 
+    // 変換完了：中止ボタンを非表示にし、無効化
+    cancelBtn.style.display = 'none';
+    cancelBtn.disabled = true;
+
     statusText.textContent = '変換完了！ダウンロードします...';
     progressBar.style.width = '100%';
 
@@ -548,6 +554,9 @@ convertBtn.addEventListener('click', async () => {
     console.error(error);
     alert(error.message || '変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
     statusText.textContent = 'エラーが発生しました';
+    // エラー時も中止ボタンは非表示
+    cancelBtn.style.display = 'none';
+    cancelBtn.disabled = true;
   } finally {
     if (!isCancelled) {
       convertBtn.disabled = false;
