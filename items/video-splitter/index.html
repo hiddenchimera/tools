@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/coi-serviceworker.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+  <!-- 複数分割ファイルをまとめて落とすためのJSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <title>動画自動分割ツール（X/Twitter・LINE・SNS対応） | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="長尺動画をX（140秒）やLINEアルバム（5分/300秒）の制限、指定秒数ごとに自動で均等分割。ブラウザ完結・無劣化ストリーム切り出し対応で安全かつ高速。">
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .control-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .form-group select,
+    .form-group input[type="number"] {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .media-preview-wrapper {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+    }
+    .media-preview-wrapper video {
+      max-width: 100%;
+      max-height: 360px;
+      display: inline-block;
+    }
+    .notice-box {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+    .input-info-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
+    }
+    /* 分割計算プレビュー枠 */
+    .split-summary-box {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .split-summary-title {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0.35rem;
+    }
+    .split-parts-list {
+      margin-top: 0.5rem;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      max-height: 120px;
+      overflow-y: auto;
+      padding-left: 1.2rem;
+    }
+    /* プログレスバー */
+    .progress-wrapper {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 9999px;
+      transition: width 0.25s ease-out;
+    }
+    .status-text {
+      font-size: 0.875rem;
+      text-align: center;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+    .btn-cancel {
+      margin-top: 0.75rem;
+      background-color: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
+    .btn-cancel:hover {
+      background-color: #dc2626;
+    }
+    /* 控えめな仕様説明欄 */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 動画自動分割ツール（X/SNS対応）
+    </div>
+
+    <h2>動画自動分割ツール（X/Twitter・LINE・SNS対応）</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      長尺の動画ファイルを、X（旧Twitter）の140秒制限やLINEアルバムの5分制限、指定秒数ごとに自動で均等分割します。<br>
+      元形式のままなら再エンコードなし（無劣化・最速）で切り出し可能。サーバー送信なしで安全に処理されます。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✂️</div>
+      <h3>動画ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（MP4, MOV, WebM, MKV, AVIなど）</p>
+    </div>
+
+    <!-- 設定・分割パネル -->
+    <div id="control-panel" class="control-panel">
+      <div id="input-info-badge" class="input-info-badge">検出ファイル: -</div>
+      
+      <div class="media-preview-wrapper">
+        <video id="video-preview" controls></video>
+      </div>
+
+      <div class="form-grid">
+        <!-- 分割間隔プリセット -->
+        <div class="form-group">
+          <label for="split-preset">分割ルール</label>
+          <select id="split-preset">
+            <option value="140" selected>X / Twitter 向け（140秒 / 2分20秒ごと）</option>
+            <option value="300">LINE アルバム・トーク向け（300秒 / 5分ごと）</option>
+            <option value="90">Instagram リール向け（90秒ごと）</option>
+            <option value="60">ショート動画向け（60秒 / 1分ごと）</option>
+            <option value="custom">カスタム秒数を指定</option>
+          </select>
+        </div>
+
+        <!-- カスタム秒数入力欄（初期非表示） -->
+        <div class="form-group" id="custom-seconds-group" style="display: none;">
+          <label for="custom-seconds-input">1動画あたりの長さ（秒）</label>
+          <input type="number" id="custom-seconds-input" min="1" max="7200" value="140" placeholder="例: 140">
+        </div>
+
+        <!-- 出力フォーマット設定 -->
+        <div class="form-group">
+          <label for="target-format">出力形式</label>
+          <select id="target-format">
+            <option value="copy" selected>元ファイルと同じ（無劣化・最速）</option>
+            <option value="mp4">MP4（H.264 / 汎用推奨）</option>
+            <option value="webm">WebM（Web高圧縮）</option>
+            <option value="mov">MOV（QuickTime形式）</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 分割シミュレーション結果エリア -->
+      <div id="split-summary-box" class="split-summary-box">
+        <div class="split-summary-title">📊 分割プレビュー</div>
+        <div id="split-summary-text">計算中...</div>
+        <ul id="split-parts-list" class="split-parts-list"></ul>
+      </div>
+
+      <button id="convert-btn" class="btn" style="width: 100%;">動画の分割を開始する</button>
+
+      <div class="notice-box">
+        💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
+        ※分割された動画が複数になる場合は、ZIPアーカイブにまとめて一括ダウンロードされます。
+      </div>
+
+      <!-- 進捗・処理エリア -->
+      <div id="progress-wrapper" class="progress-wrapper">
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="status-text" class="status-text">分割処理中...</div>
+        <button id="cancel-btn" class="btn-cancel" type="button" style="display: none;">✖ 処理を中止する</button>
+      </div>
+    </div>
+
+    <!-- 控えめな対応ファイル・技術仕様アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・分割仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>動画:</strong> MP4, MOV, WebM, MKV, AVI, FLV, WMV, M4V</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>切り出し方式</h4>
+          <ul>
+            <li><strong>元形式と同じ（推奨）:</strong> ストリームコピー（`-c copy`）により、画質劣化なし・数秒で高速分割。</li>
+            <li><strong>形式変換あり:</strong> 各パートごとに再エンコードを行い指定コンテナに変換。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>出力・保存仕様</h4>
+          <ul>
+            <li>1本のみ（指定秒数未満）: 単体動画ファイルとして直接ダウンロード。</li>
+            <li>複数本: 各パートを `part1`, `part2`... と命名し、1つのZIPファイルにまとめてダウンロード。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
