@@ -50,7 +50,7 @@ async function loadFFmpeg() {
   if (isLoaded) return;
   const { createFFmpeg } = FFmpeg;
   ffmpeg = createFFmpeg({
-    log: true, // 詳細ログを出力
+    log: true, // 詳細ログをコンソールに出力
     corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
   });
 
@@ -85,7 +85,7 @@ convertBtn.addEventListener('click', async () => {
     const outputName = `output.${targetFormat}`;
 
     statusText.textContent = '動画ファイルを読み込み中...';
-    // 依存を排除して直接 Uint8Array で渡す
+    // 直接 Uint8Array で渡す（キャッシュ問題の回避）
     const fileData = new Uint8Array(await currentFile.arrayBuffer());
     ffmpeg.FS('writeFile', inputName, fileData);
 
@@ -184,6 +184,18 @@ convertBtn.addEventListener('click', async () => {
 
     await ffmpeg.run(...ffmpegArgs);
 
+    // 出力ファイルが正常に生成されたか確認してから読み込む
+    let data;
+    try {
+      data = ffmpeg.FS('readFile', outputName);
+    } catch (readErr) {
+      if (['mp3', 'wav', 'aac'].includes(targetFormat)) {
+        throw new Error('音声トラックが見つかりませんでした。動画に音声が含まれているか確認してください。');
+      } else {
+        throw new Error('出力ファイルの書き出しに失敗しました。エンコード設定をご確認ください。');
+      }
+    }
+
     statusText.textContent = '変換完了！ダウンロードします...';
     progressBar.style.width = '100%';
 
@@ -199,9 +211,7 @@ convertBtn.addEventListener('click', async () => {
       aac: 'audio/aac'
     };
 
-    const data = ffmpeg.FS('readFile', outputName);
     const blob = new Blob([data.buffer], { type: mimeMap[targetFormat] || 'application/octet-stream' });
-
     const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'converted';
     CommonUtils.downloadBlob(blob, `${baseName}.${targetFormat}`);
 
@@ -210,7 +220,7 @@ convertBtn.addEventListener('click', async () => {
 
   } catch (error) {
     console.error(error);
-    alert('変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
+    alert(error.message || '変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
     statusText.textContent = 'エラーが発生しました';
   } finally {
     convertBtn.disabled = false;
