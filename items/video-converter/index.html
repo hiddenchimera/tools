@@ -6,8 +6,8 @@
   <script src="/coi-serviceworker.js"></script>
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
-  <title>動画フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="MOV・WebM・MP4・MKV・AVI・GIF・MP3等への相互変換。サーバー送信なしで安全・高速に処理します。">
+  <title>動画・音声フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒背景）にも対応。完全クライアント処理で安心。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -49,18 +49,26 @@
       padding: 0.6rem;
       border-radius: 6px;
     }
-    .video-preview-wrapper {
+    .media-preview-wrapper {
       margin-bottom: 1.5rem;
       text-align: center;
       background: #000;
       border-radius: 8px;
       overflow: hidden;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
     }
-    .video-preview-wrapper video {
+    .media-preview-wrapper video {
       max-width: 100%;
       max-height: 360px;
       display: inline-block;
-      vertical-align: middle;
+    }
+    .media-preview-wrapper audio {
+      width: 100%;
+      max-width: 500px;
     }
     .notice-box {
       font-size: 0.8rem;
@@ -71,6 +79,14 @@
       padding: 0.75rem 1rem;
       margin-top: 1rem;
       line-height: 1.5;
+    }
+    .input-info-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -84,33 +100,36 @@
 
   <main>
     <div class="breadcrumb">
-      <a href="../../">トップ</a> &gt; 動画フォーマット変換ツール
+      <a href="../../">トップ</a> &gt; 動画・音声フォーマット変換ツール
     </div>
 
-    <h2>動画フォーマット変換ツール</h2>
+    <h2>動画・音声フォーマット変換ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-      MOV、WebM、MP4、MKV、AVIなどの動画形式、GIFアニメ、音声形式（MP3/WAV/AAC）へ相互変換します。<br>
-      ブラウザ完結のためサーバー送信なしで安全に処理されます。
+      動画（MP4/MOV/WebM等）や音声（MP3/WAV/M4A等）を相互変換します。<br>
+      音声ファイルからSNS投稿用の動画化（黒背景）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
     </p>
 
     <!-- ファイルドロップエリア -->
     <div id="dropzone" class="dropzone">
       <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
-      <h3>動画ファイルをドラッグ＆ドロップ</h3>
-      <p>またはクリックして選択（MOV, WebM, MP4, MKV, AVI, FLVなど）</p>
+      <h3>動画・音声ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（MP4, MOV, WebM, MP3, WAV, M4A, FLACなど）</p>
     </div>
 
     <!-- 設定・変換パネル -->
     <div id="control-panel" class="control-panel">
-      <div class="video-preview-wrapper">
-        <video id="video-preview" controls></video>
+      <div id="input-info-badge" class="input-info-badge">検出ファイル: -</div>
+      
+      <div class="media-preview-wrapper">
+        <video id="video-preview" controls style="display: none;"></video>
+        <audio id="audio-preview" controls style="display: none;"></audio>
       </div>
 
       <div class="form-grid">
         <div class="form-group">
           <label for="target-format">出力フォーマット</label>
           <select id="target-format">
-            <optgroup label="動画フォーマット">
+            <optgroup label="動画フォーマット（音声入力時は黒背景動画化）">
               <option value="mp4">MP4（H.264 / 汎用推奨）</option>
               <option value="webm">WebM（VP9 / Web高圧縮）</option>
               <option value="mov">MOV（QuickTime形式）</option>
@@ -118,9 +137,9 @@
               <option value="avi">AVI（レガシー機器互換）</option>
             </optgroup>
             <optgroup label="アニメーション">
-              <option value="gif">GIFアニメーション</option>
+              <option value="gif">GIFアニメーション（動画入力推奨）</option>
             </optgroup>
-            <optgroup label="音声のみ抽出">
+            <optgroup label="音声フォーマット">
               <option value="mp3">MP3（標準音声）</option>
               <option value="wav">WAV（非圧縮・ロスレス）</option>
               <option value="aac">AAC / M4A（高音質圧縮）</option>
@@ -141,8 +160,8 @@
       <button id="convert-btn" class="btn" style="width: 100%;">変換を開始する</button>
 
       <div class="notice-box">
-        💡 <strong>完全ローカル処理</strong>: 動画データはサーバーに一切送信されず、お使いの端末内で処理されます。<br>
-        ※長時間の動画や4K動画は処理に時間がかかるため、短尺動画やSNS用クリップでの利用を推奨します。
+        💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
+        ※音声から動画（MP4等）に変換する場合、自動で1280x720の黒背景動画が生成されます。
       </div>
 
       <div id="progress-wrapper" class="progress-wrapper">
