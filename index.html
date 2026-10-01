@@ -5,50 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>完全無料・ブラウザ完結型 メディアツール</title>
   <meta name="description" content="画像・動画・音声のフォーマット変換、SNS向け動画自動分割などをブラウザ上だけで安全に実行できる完全無料のWebツール集。サーバー送信ゼロで安心・高速。">
-  <link rel="stylesheet" href="./tools/assets/css/common.css">
+  
+  <!-- ルート相対パスで共通CSSを読み込み -->
+  <link rel="stylesheet" href="/assets/css/common.css">
+
   <style>
     .hero-section {
       text-align: center;
-      padding: 2.5rem 1rem 2rem;
+      padding: 2rem 1rem 2.5rem;
       max-width: 760px;
       margin: 0 auto;
     }
     .hero-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 1rem 0 0.75rem;
       line-height: 1.3;
+      letter-spacing: -0.02em;
     }
     .hero-desc {
       font-size: 1rem;
       color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
+      line-height: 1.7;
     }
     .privacy-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       font-size: 0.825rem;
-      padding: 0.35rem 0.85rem;
-      background: rgba(16, 185, 129, 0.1);
+      padding: 0.35rem 0.9rem;
+      background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
       border-radius: 9999px;
+      font-weight: 500;
     }
 
     /* ツールカードグリッド */
     .tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
-      margin: 2rem 0 3rem;
+      margin: 1.5rem 0 3.5rem;
     }
     .tool-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 1.75rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -57,37 +61,37 @@
       transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
     .tool-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-4px);
       border-color: var(--primary-color);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
     }
     .tool-icon {
-      font-size: 2.2rem;
+      font-size: 2.4rem;
       margin-bottom: 0.75rem;
     }
     .tool-title {
-      font-size: 1.15rem;
-      font-weight: 600;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--text-color);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
     }
     .tool-description {
       font-size: 0.875rem;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 1.25rem;
       flex-grow: 1;
     }
     .tool-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 1.25rem;
+      gap: 0.45rem;
+      margin-bottom: 1.5rem;
     }
     .tool-tag {
       font-size: 0.75rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
@@ -95,18 +99,19 @@
     .tool-btn {
       width: 100%;
       text-align: center;
-      padding: 0.6rem 0;
+      padding: 0.75rem 0;
       font-size: 0.9rem;
-      font-weight: 500;
-      background: rgba(59, 130, 246, 0.12);
-      color: var(--primary-color);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 6px;
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 8px;
       transition: background 0.2s, color 0.2s;
     }
     .tool-card:hover .tool-btn {
       background: var(--primary-color);
       color: #fff;
+      border-color: var(--primary-color);
     }
 
     /* 共通特徴セクション */
@@ -114,31 +119,31 @@
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-color);
       border-radius: var(--radius);
-      padding: 2rem;
-      margin-bottom: 3rem;
+      padding: 2.25rem;
+      margin-bottom: 2rem;
     }
     .features-header {
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
     }
     .features-header h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.35rem;
+      font-size: 1.35rem;
+      margin-bottom: 0.4rem;
     }
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
+      gap: 1.75rem;
     }
     .feature-item h4 {
-      font-size: 0.95rem;
-      margin-bottom: 0.35rem;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
       color: var(--text-color);
     }
     .feature-item p {
-      font-size: 0.825rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -146,14 +151,14 @@
 
   <header>
     <div class="logo">
-      <a href="./">完全無料・ブラウザ完結型 メディアツール</a>
+      <a href="/">完全無料・ブラウザ完結型 メディアツール</a>
     </div>
   </header>
 
   <main>
     <section class="hero-section">
       <div class="privacy-badge">
-        <span>🛡️</span>
+        <span>🛡️️</span>
         <span>サーバー送信ゼロ・端末内ローカル処理</span>
       </div>
       <h1 class="hero-title">安全・高速にメディアを加工・変換</h1>
@@ -167,7 +172,7 @@
     <section class="tools-grid">
 
       <!-- 1. 動画自動分割ツール -->
-      <a href="./tools/items/video-splitter/" class="tool-card">
+      <a href="/items/video-splitter/" class="tool-card">
         <div>
           <div class="tool-icon">✂️</div>
           <div class="tool-title">動画自動分割ツール</div>
@@ -185,7 +190,7 @@
       </a>
 
       <!-- 2. 動画・音声フォーマット変換ツール -->
-      <a href="./tools/items/video-converter/" class="tool-card">
+      <a href="/items/video-converter/" class="tool-card">
         <div>
           <div class="tool-icon">🔄</div>
           <div class="tool-title">動画・音声フォーマット変換</div>
@@ -203,7 +208,7 @@
       </a>
 
       <!-- 3. 画像フォーマット変換ツール -->
-      <a href="./tools/items/image-converter/" class="tool-card">
+      <a href="/items/image-converter/" class="tool-card">
         <div>
           <div class="tool-icon">🖼️</div>
           <div class="tool-title">画像フォーマット変換</div>
@@ -248,6 +253,6 @@
     <p>&copy; Hidden Chimera All Rights Reserved.</p>
   </footer>
 
-  <script src="./tools/assets/js/common.js"></script>
+  <script src="/assets/js/common.js"></script>
 </body>
 </html>
