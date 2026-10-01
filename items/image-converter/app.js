@@ -1,380 +1,121 @@
-let ffmpeg = null;
 let currentFile = null;
-let currentBgImageFile = null;
-let isLoaded = false;
-let isAudioInput = false;
+let currentImageBitmap = null;
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
-const videoPreview = document.getElementById('video-preview');
-const audioPreview = document.getElementById('audio-preview');
+const imagePreview = document.getElementById('image-preview');
 const inputInfoBadge = document.getElementById('input-info-badge');
 const targetFormatSelect = document.getElementById('target-format');
-const qualityGroup = document.getElementById('quality-group');
-const qualityPresetSelect = document.getElementById('quality-preset');
+const qualityContainer = document.getElementById('quality-container');
+const qualityRange = document.getElementById('quality-range');
+const qualityVal = document.getElementById('quality-val');
 const convertBtn = document.getElementById('convert-btn');
 const progressWrapper = document.getElementById('progress-wrapper');
 const progressBar = document.getElementById('progress-bar');
 const statusText = document.getElementById('status-text');
 
-// 背景選択用エレメント
-const bgOptionsPanel = document.getElementById('bg-options-panel');
-const bgTypeSelect = document.getElementById('bg-type-select');
-const bgImageSection = document.getElementById('bg-image-section');
-const bgImageInput = document.getElementById('bg-image-input');
-const bgImageDropzone = document.getElementById('bg-image-dropzone');
-const bgImageLabel = document.getElementById('bg-image-label');
-const bgImagePreview = document.getElementById('bg-image-preview');
+// スライダーの値表示更新
+qualityRange.addEventListener('input', () => {
+  qualityVal.textContent = `${Math.round(qualityRange.value * 100)}%`;
+});
 
-// 拡張子リスト
-const VIDEO_EXTS = ['mp4', 'mov', 'webm', 'mkv', 'avi', 'flv', 'wmv', 'm4v'];
-const AUDIO_EXTS = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+// フォーマット切り替え時（PNGはロスレスのため画質スライダーを非表示）
+targetFormatSelect.addEventListener('change', () => {
+  const fmt = targetFormatSelect.value;
+  if (fmt === 'png') {
+    qualityContainer.style.display = 'none';
+  } else {
+    qualityContainer.style.display = 'flex';
+  }
+});
 
 // ファイル受付
-CommonUtils.initDropzone(dropzone, (file) => {
-  const ext = (file.name.substring(file.name.lastIndexOf('.') + 1) || '').toLowerCase();
-  const isVideo = file.type.startsWith('video/') || VIDEO_EXTS.includes(ext);
-  const isAudio = file.type.startsWith('audio/') || AUDIO_EXTS.includes(ext);
-
-  if (!isVideo && !isAudio) {
-    alert('動画または音声ファイル（MP4, MOV, WebM, MP3, WAV, M4A等）を選択してください。');
+CommonUtils.initDropzone(dropzone, async (file) => {
+  if (!file.type.startsWith('image/')) {
+    alert('画像ファイル（WebP, PNG, JPG, AVIF, GIF等）を選択してください。');
     return;
   }
 
   currentFile = file;
-  isAudioInput = isAudio && !file.type.startsWith('video/');
 
-  const fileUrl = URL.createObjectURL(file);
+  try {
+    // 画像をBitmapとして読み込み
+    currentImageBitmap = await createImageBitmap(file);
 
-  // プレビューの切り替え
-  if (isAudioInput) {
-    videoPreview.style.display = 'none';
-    audioPreview.style.display = 'block';
-    audioPreview.src = fileUrl;
-    inputInfoBadge.textContent = `🎵 音声ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
-    
-    if (['mp3', 'wav', 'aac'].includes(ext)) {
-      targetFormatSelect.value = (ext === 'mp3') ? 'wav' : 'mp3';
+    // プレビュー表示
+    imagePreview.src = URL.createObjectURL(file);
+    inputInfoBadge.textContent = `🖼️ 検出: ${file.name} (${file.type || '不明'}, ${currentImageBitmap.width}×${currentImageBitmap.height}px, ${CommonUtils.formatBytes(file.size)})`;
+
+    // 入力と出力が被らないように初期値を調整
+    const ext = (file.name.substring(file.name.lastIndexOf('.') + 1) || '').toLowerCase();
+    if (ext === 'webp') {
+      targetFormatSelect.value = 'jpeg';
+    } else if (ext === 'jpg' || ext === 'jpeg') {
+      targetFormatSelect.value = 'webp';
     } else {
-      targetFormatSelect.value = 'mp3';
+      targetFormatSelect.value = 'webp';
     }
-  } else {
-    audioPreview.style.display = 'none';
-    videoPreview.style.display = 'block';
-    videoPreview.src = fileUrl;
-    inputInfoBadge.textContent = `🎬 動画ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
 
-    if (targetFormatSelect.value === ext) {
-      targetFormatSelect.value = (ext === 'mp4') ? 'webm' : 'mp4';
-    }
+    qualityContainer.style.display = targetFormatSelect.value === 'png' ? 'none' : 'flex';
+    controlPanel.style.display = 'block';
+    progressWrapper.style.display = 'none';
+    convertBtn.disabled = false;
+
+  } catch (err) {
+    console.error(err);
+    alert('画像の読み込みに失敗しました。対応していない画像形式の可能性があります。');
   }
+}, 'image/*');
 
-  updateUIForFormat();
-  controlPanel.style.display = 'block';
-  progressWrapper.style.display = 'none';
-  convertBtn.disabled = false;
-}, '*');
-
-// 背景画像の受付（クリック＆ドラッグ＆ドロップ）
-bgImageDropzone.addEventListener('click', () => bgImageInput.click());
-
-bgImageDropzone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  bgImageDropzone.style.borderColor = 'var(--primary-color)';
-});
-
-bgImageDropzone.addEventListener('dragleave', () => {
-  bgImageDropzone.style.borderColor = 'var(--border-color)';
-});
-
-bgImageDropzone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  bgImageDropzone.style.borderColor = 'var(--border-color)';
-  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    handleBgImageFile(e.dataTransfer.files[0]);
-  }
-});
-
-bgImageInput.addEventListener('change', (e) => {
-  if (e.target.files && e.target.files[0]) {
-    handleBgImageFile(e.target.files[0]);
-  }
-});
-
-function handleBgImageFile(file) {
-  if (!file.type.startsWith('image/')) {
-    alert('画像ファイル（PNG, JPG, WebP等）を選択してください。');
-    return;
-  }
-  currentBgImageFile = file;
-  bgImagePreview.src = URL.createObjectURL(file);
-  bgImagePreview.style.display = 'inline-block';
-  bgImageLabel.textContent = `選択中: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
-}
-
-// 背景タイプセレクト切り替え
-bgTypeSelect.addEventListener('change', () => {
-  if (bgTypeSelect.value === 'image') {
-    bgImageSection.style.display = 'block';
-  } else {
-    bgImageSection.style.display = 'none';
-  }
-});
-
-// フォーマット切り替え時のUI制御
-targetFormatSelect.addEventListener('change', updateUIForFormat);
-
-function updateUIForFormat() {
-  const fmt = targetFormatSelect.value;
-  const isTargetVideo = ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(fmt);
-
-  // GIFやWAVのときは画質設定を隠す
-  if (fmt === 'gif' || fmt === 'wav') {
-    qualityGroup.style.display = 'none';
-  } else {
-    qualityGroup.style.display = 'flex';
-  }
-
-  // 「音声ファイル」かつ「動画形式への変換」の時のみ背景設定パネルを表示
-  if (isAudioInput && isTargetVideo) {
-    bgOptionsPanel.style.display = 'block';
-    bgImageSection.style.display = (bgTypeSelect.value === 'image') ? 'block' : 'none';
-  } else {
-    bgOptionsPanel.style.display = 'none';
-  }
-}
-
-// FFmpegのロード
-async function loadFFmpeg() {
-  if (isLoaded) return;
-  const { createFFmpeg } = FFmpeg;
-  ffmpeg = createFFmpeg({
-    log: true,
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
-  });
-
-  statusText.textContent = '変換エンジンの初期化中...';
-  await ffmpeg.load();
-  isLoaded = true;
-}
-
-// 変換メインロジック
+// 変換メインロジック（Canvas API）
 convertBtn.addEventListener('click', async () => {
-  if (!currentFile) return;
-
-  const targetFormat = targetFormatSelect.value;
-  const isTargetVideo = ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(targetFormat);
-  const isTargetAudio = ['mp3', 'wav', 'aac'].includes(targetFormat);
-
-  // 背景画像必須チェック
-  if (isAudioInput && isTargetVideo && bgTypeSelect.value === 'image' && !currentBgImageFile) {
-    alert('背景にする画像ファイルを選択してください。');
-    return;
-  }
+  if (!currentFile || !currentImageBitmap) return;
 
   convertBtn.disabled = true;
   progressWrapper.style.display = 'block';
-  progressBar.style.width = '0%';
-  statusText.textContent = '準備中...';
-
-  let inputBgImageName = null;
+  progressBar.style.width = '30%';
+  statusText.textContent = '変換処理中...';
 
   try {
-    await loadFFmpeg();
+    const format = targetFormatSelect.value;
+    const quality = parseFloat(qualityRange.value);
 
-    ffmpeg.setProgress(({ ratio }) => {
-      if (ratio >= 0 && ratio <= 1) {
-        const percent = Math.min(100, Math.round(ratio * 100));
-        progressBar.style.width = `${percent}%`;
-        statusText.textContent = `変換中... ${percent}%`;
-      }
+    // Canvasの生成
+    const canvas = document.createElement('canvas');
+    canvas.width = currentImageBitmap.width;
+    canvas.height = currentImageBitmap.height;
+    const ctx = canvas.getContext('2d');
+
+    // JPG変換時のみ、透明部分を白背景で塗りつぶす（透過PNG対策）
+    if (format === 'jpeg') {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 画像を描画（この時点でEXIFメタデータは完全に除去されます）
+    ctx.drawImage(currentImageBitmap, 0, 0);
+
+    progressBar.style.width = '70%';
+
+    const mimeType = `image/${format}`;
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (b) resolve(b);
+        else reject(new Error('画像の変換・出力に失敗しました。'));
+      }, mimeType, quality);
     });
 
-    const inExt = (currentFile.name.substring(currentFile.name.lastIndexOf('.') + 1) || 'bin').toLowerCase();
-    const inputName = `input.${inExt}`;
-    const outputName = `output.${targetFormat}`;
-
-    statusText.textContent = 'ファイルを読み込み中...';
-    const fileData = new Uint8Array(await currentFile.arrayBuffer());
-    ffmpeg.FS('writeFile', inputName, fileData);
-
-    // 背景画像がある場合は書き込み
-    if (isAudioInput && isTargetVideo && bgTypeSelect.value === 'image' && currentBgImageFile) {
-      const imgExt = (currentBgImageFile.name.substring(currentBgImageFile.name.lastIndexOf('.') + 1) || 'jpg').toLowerCase();
-      inputBgImageName = `bg_image.${imgExt}`;
-      const imgData = new Uint8Array(await currentBgImageFile.arrayBuffer());
-      ffmpeg.FS('writeFile', inputBgImageName, imgData);
-    }
-
-    statusText.textContent = '変換処理を実行中...';
-
-    const preset = qualityPresetSelect.value;
-    let ffmpegArgs = [];
-
-    // ==========================================
-    // パターン1: 音声ファイル ➔ 動画化（背景を合成）
-    // ==========================================
-    if (isAudioInput && isTargetVideo) {
-      const bgType = bgTypeSelect.value;
-      const vCodec = targetFormat === 'webm' ? 'libvpx-vp9' : 'libx264';
-      const aCodec = targetFormat === 'webm' ? 'libopus' : 'aac';
-
-      if (bgType === 'image' && inputBgImageName) {
-        // 画像をループさせてアスペクト比を保ったまま1280x720の画面にパディング合成
-        ffmpegArgs.push(
-          '-loop', '1',
-          '-i', inputBgImageName,
-          '-i', inputName,
-          '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:black',
-          '-c:v', vCodec,
-          '-tune', 'stillimage',
-          '-preset', 'ultrafast',
-          '-c:a', aCodec,
-          '-b:a', '192k',
-          '-pix_fmt', 'yuv420p',
-          '-shortest',
-          outputName
-        );
-      } else {
-        // 単色背景（黒または白）
-        const colorName = (bgType === 'white') ? 'white' : 'black';
-        ffmpegArgs.push(
-          '-f', 'lavfi', '-i', `color=c=${colorName}:s=1280x720:r=30`,
-          '-i', inputName,
-          '-c:v', vCodec,
-          '-tune', 'stillimage',
-          '-preset', 'ultrafast',
-          '-c:a', aCodec,
-          '-b:a', '192k',
-          '-pix_fmt', 'yuv420p',
-          '-shortest',
-          outputName
-        );
-      }
-    } 
-    // ==========================================
-    // パターン2: 音声のみ出力（音声抽出 / 音声相互変換）
-    // ==========================================
-    else if (isTargetAudio) {
-      ffmpegArgs.push('-i', inputName, '-vn');
-
-      if (targetFormat === 'mp3') {
-        const bitrates = { fast: '128k', high: '256k', small: '96k' };
-        ffmpegArgs.push('-b:a', bitrates[preset] || '128k', outputName);
-      } else if (targetFormat === 'wav') {
-        ffmpegArgs.push('-c:a', 'pcm_s16le', outputName);
-      } else if (targetFormat === 'aac') {
-        const bitrates = { fast: '128k', high: '256k', small: '96k' };
-        ffmpegArgs.push('-c:a', 'aac', '-b:a', bitrates[preset] || '128k', outputName);
-      }
-    } 
-    // ==========================================
-    // パターン3: 通常の動画 ➔ 動画変換 / GIF変換
-    // ==========================================
-    else {
-      ffmpegArgs.push('-i', inputName);
-
-      switch (targetFormat) {
-        case 'mp4':
-        case 'mov':
-        case 'mkv': {
-          let crf = '23';
-          let speed = 'ultrafast';
-          if (preset === 'high') { crf = '19'; speed = 'fast'; }
-          if (preset === 'small') { crf = '28'; speed = 'ultrafast'; }
-
-          ffmpegArgs.push(
-            '-c:v', 'libx264',
-            '-preset', speed,
-            '-crf', crf,
-            '-c:a', 'aac',
-            '-b:a', '128k',
-            '-movflags', '+faststart',
-            outputName
-          );
-          break;
-        }
-
-        case 'webm': {
-          let crf = '32';
-          if (preset === 'high') crf = '26';
-          if (preset === 'small') crf = '38';
-
-          ffmpegArgs.push(
-            '-c:v', 'libvpx-vp9',
-            '-crf', crf,
-            '-b:v', '0',
-            '-c:a', 'libopus',
-            '-speed', '8',
-            outputName
-          );
-          break;
-        }
-
-        case 'avi': {
-          ffmpegArgs.push(
-            '-c:v', 'mpeg4',
-            '-qscale:v', preset === 'high' ? '3' : '6',
-            '-c:a', 'mp3',
-            '-b:a', '128k',
-            outputName
-          );
-          break;
-        }
-
-        case 'gif': {
-          ffmpegArgs.push(
-            '-vf', 'fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
-            '-loop', '0',
-            outputName
-          );
-          break;
-        }
-      }
-    }
-
-    await ffmpeg.run(...ffmpegArgs);
-
-    let data;
-    try {
-      data = ffmpeg.FS('readFile', outputName);
-    } catch (readErr) {
-      if (isTargetAudio && !isAudioInput) {
-        throw new Error('動画内に音声トラックが見つかりませんでした。');
-      } else {
-        throw new Error('変換ファイルの生成に失敗しました。');
-      }
-    }
-
-    statusText.textContent = '変換完了！ダウンロードします...';
     progressBar.style.width = '100%';
+    statusText.textContent = '変換完了！ダウンロードします...';
 
-    const mimeMap = {
-      mp4: 'video/mp4',
-      webm: 'video/webm',
-      mov: 'video/quicktime',
-      mkv: 'video/x-matroska',
-      avi: 'video/x-msvideo',
-      gif: 'image/gif',
-      mp3: 'audio/mpeg',
-      wav: 'audio/wav',
-      aac: 'audio/aac'
-    };
-
-    const blob = new Blob([data.buffer], { type: mimeMap[targetFormat] || 'application/octet-stream' });
+    // ダウンロード実行
     const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'converted';
-    CommonUtils.downloadBlob(blob, `${baseName}.${targetFormat}`);
-
-    // FSクリーンアップ
-    ffmpeg.FS('unlink', inputName);
-    ffmpeg.FS('unlink', outputName);
-    if (inputBgImageName) {
-      try { ffmpeg.FS('unlink', inputBgImageName); } catch (e) {}
-    }
+    const outExt = format === 'jpeg' ? 'jpg' : format;
+    CommonUtils.downloadBlob(blob, `${baseName}.${outExt}`);
 
   } catch (error) {
     console.error(error);
-    alert(error.message || '変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
+    alert(error.message || '変換処理中にエラーが発生しました。');
     statusText.textContent = 'エラーが発生しました';
   } finally {
     convertBtn.disabled = false;
