@@ -150,7 +150,6 @@ async function handleBgImageFile(file) {
 // Canvasを使った透過チェック
 function checkIfImageHasTransparency(file) {
   return new Promise((resolve) => {
-    // JPGなどは透過があり得ないのでスキップ
     if (file.type === 'image/jpeg') {
       return resolve(false);
     }
@@ -161,7 +160,6 @@ function checkIfImageHasTransparency(file) {
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      // 高速化のため最大300px程度にリサイズしてサンプリング
       const maxDim = 300;
       let w = img.width;
       let h = img.height;
@@ -175,10 +173,9 @@ function checkIfImageHasTransparency(file) {
 
       try {
         const imgData = ctx.getImageData(0, 0, w, h).data;
-        // アルファ値（4バイトごと）をチェック
         for (let i = 3; i < imgData.length; i += 4) {
           if (imgData[i] < 255) {
-            return resolve(true); // 透過ピクセルあり
+            return resolve(true);
           }
         }
         resolve(false);
@@ -295,8 +292,18 @@ convertBtn.addEventListener('click', async () => {
     // ==========================================
     if (isAudioInput && isTargetVideo) {
       const bgType = bgTypeSelect.value;
-      const vCodec = targetFormat === 'webm' ? 'libvpx-vp9' : 'libx264';
-      const aCodec = targetFormat === 'webm' ? 'libopus' : 'aac';
+      const isWebm = (targetFormat === 'webm');
+
+      // WebM時はWebAssemblyで安定するVP8 + Vorbisを使用
+      const vCodec = isWebm ? 'libvpx' : 'libx264';
+      const aCodec = isWebm ? 'libvorbis' : 'aac';
+
+      let videoEncoderArgs = [];
+      if (isWebm) {
+        videoEncoderArgs = ['-c:v', vCodec, '-b:v', '1M', '-crf', '10', '-c:a', aCodec, '-b:a', '128k'];
+      } else {
+        videoEncoderArgs = ['-c:v', vCodec, '-tune', 'stillimage', '-preset', 'ultrafast', '-c:a', aCodec, '-b:a', '192k'];
+      }
 
       if (bgType === 'image' && inputBgImageName) {
         if (isImageTransparent) {
@@ -309,15 +316,11 @@ convertBtn.addEventListener('click', async () => {
           }
 
           ffmpegArgs.push(
-            '-f', 'lavfi', '-i', `color=c=${baseColor}:s=1280x720:r=30`,
+            '-f', 'lavfi', '-i', `color=c=${baseColor}:s=1280x720:r=25`,
             '-loop', '1', '-i', inputBgImageName,
             '-i', inputName,
             '-filter_complex', '[1:v]scale=1280:720:force_original_aspect_ratio=decrease[fg];[0:v][fg]overlay=(W-w)/2:(H-h)/2',
-            '-c:v', vCodec,
-            '-tune', 'stillimage',
-            '-preset', 'ultrafast',
-            '-c:a', aCodec,
-            '-b:a', '192k',
+            ...videoEncoderArgs,
             '-pix_fmt', 'yuv420p',
             '-shortest',
             outputName
@@ -328,12 +331,9 @@ convertBtn.addEventListener('click', async () => {
             '-loop', '1',
             '-i', inputBgImageName,
             '-i', inputName,
+            '-r', '25',
             '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:black',
-            '-c:v', vCodec,
-            '-tune', 'stillimage',
-            '-preset', 'ultrafast',
-            '-c:a', aCodec,
-            '-b:a', '192k',
+            ...videoEncoderArgs,
             '-pix_fmt', 'yuv420p',
             '-shortest',
             outputName
@@ -349,13 +349,9 @@ convertBtn.addEventListener('click', async () => {
         }
 
         ffmpegArgs.push(
-          '-f', 'lavfi', '-i', `color=c=${colorParam}:s=1280x720:r=30`,
+          '-f', 'lavfi', '-i', `color=c=${colorParam}:s=1280x720:r=25`,
           '-i', inputName,
-          '-c:v', vCodec,
-          '-tune', 'stillimage',
-          '-preset', 'ultrafast',
-          '-c:a', aCodec,
-          '-b:a', '192k',
+          ...videoEncoderArgs,
           '-pix_fmt', 'yuv420p',
           '-shortest',
           outputName
@@ -411,11 +407,10 @@ convertBtn.addEventListener('click', async () => {
           if (preset === 'small') crf = '38';
 
           ffmpegArgs.push(
-            '-c:v', 'libvpx-vp9',
+            '-c:v', 'libvpx',
             '-crf', crf,
-            '-b:v', '0',
-            '-c:a', 'libopus',
-            '-speed', '8',
+            '-b:v', '1M',
+            '-c:a', 'libvorbis',
             outputName
           );
           break;
