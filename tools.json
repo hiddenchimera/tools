@@ -29,11 +29,11 @@
   {
     "id": "video-converter",
     "category": "video-audio",
-    "name": "動画フォーマット変換ツール",
-    "description": "MOV・WebM・MP4の相互変換。iPhone動画（MOV）のMP4化やWeb用WebM化を完全ローカルで高速処理。",
+    "name": "動画・音声フォーマット変換ツール",
+    "description": "MP4・MOV・WebM・MP3・WAV・M4Aの相互変換。動画の軽量化、音声の動画化（黒背景）にも対応。",
     "path": "./items/video-converter/",
     "icon": "repeat",
-    "tags": ["動画", "MOV", "MP4", "WebM", "変換"]
+    "tags": ["動画", "音声", "MP4", "MP3", "WAV", "変換"]
   },
   {
     "id": "image-converter",
