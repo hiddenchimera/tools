@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/coi-serviceworker.js"></script>
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
-  <!-- 複数分割ファイルをまとめて落とすためのJSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <title>動画自動分割ツール（X/Twitter・LINE・SNS対応） | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="長尺動画をX（140秒）やLINEアルバム（5分/300秒）の制限、指定秒数ごとに自動で均等分割。ブラウザ完結・無劣化ストリーム切り出し対応で安全かつ高速。">
+  <meta name="description" content="長尺動画をX（140秒）やLINEアルバム（5分/300秒）の制限、指定秒数ごとに自動で均等分割。フレーム精度の厳密カットと高速切り出しに対応。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -87,7 +86,6 @@
       background: rgba(255, 255, 255, 0.1);
       margin-bottom: 0.5rem;
     }
-    /* 分割計算プレビュー枠 */
     .split-summary-box {
       background: rgba(59, 130, 246, 0.08);
       border: 1px solid rgba(59, 130, 246, 0.3);
@@ -109,7 +107,6 @@
       overflow-y: auto;
       padding-left: 1.2rem;
     }
-    /* プログレスバー */
     .progress-wrapper {
       display: none;
       margin-top: 1.5rem;
@@ -155,7 +152,6 @@
     .btn-cancel:hover {
       background-color: #dc2626;
     }
-    /* 控えめな仕様説明欄 */
     .spec-details {
       margin-top: 3rem;
       padding: 1rem 1.25rem;
@@ -209,7 +205,7 @@
     <h2>動画自動分割ツール（X/Twitter・LINE・SNS対応）</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
       長尺の動画ファイルを、X（旧Twitter）の140秒制限やLINEアルバムの5分制限、指定秒数ごとに自動で均等分割します。<br>
-      元形式のままなら再エンコードなし（無劣化・最速）で切り出し可能。サーバー送信なしで安全に処理されます。
+      SNS投稿用に秒数を厳密に切り出す「高精度モード」と、処理速度最優先の「超高速モード」を選べます。
     </p>
 
     <!-- ファイルドロップエリア -->
@@ -240,17 +236,26 @@
           </select>
         </div>
 
-        <!-- カスタム秒数入力欄（初期非表示） -->
+        <!-- カスタム秒数入力欄 -->
         <div class="form-group" id="custom-seconds-group" style="display: none;">
           <label for="custom-seconds-input">1動画あたりの長さ（秒）</label>
           <input type="number" id="custom-seconds-input" min="1" max="7200" value="140" placeholder="例: 140">
+        </div>
+
+        <!-- 切り出しモード（精度 vs 速度） -->
+        <div class="form-group">
+          <label for="cut-mode">切り出し精度</label>
+          <select id="cut-mode">
+            <option value="precise" selected>高精度（秒数ピッタリ / SNS投稿推奨）</option>
+            <option value="fast">超高速・無劣化（数秒のズレあり / ストリームコピー）</option>
+          </select>
         </div>
 
         <!-- 出力フォーマット設定 -->
         <div class="form-group">
           <label for="target-format">出力形式</label>
           <select id="target-format">
-            <option value="copy" selected>元ファイルと同じ（無劣化・最速）</option>
+            <option value="copy" selected>元ファイルと同じ形式</option>
             <option value="mp4">MP4（H.264 / 汎用推奨）</option>
             <option value="webm">WebM（Web高圧縮）</option>
             <option value="mov">MOV（QuickTime形式）</option>
@@ -269,7 +274,7 @@
 
       <div class="notice-box">
         💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
-        ※分割された動画が複数になる場合は、ZIPアーカイブにまとめて一括ダウンロードされます。
+        ※「高精度」を選ぶと、Xの140秒制限などを1秒たりとも超えないように厳密な秒数でカットされます。
       </div>
 
       <!-- 進捗・処理エリア -->
@@ -293,10 +298,10 @@
           </ul>
         </div>
         <div class="spec-group">
-          <h4>切り出し方式</h4>
+          <h4>切り出し方式の違い</h4>
           <ul>
-            <li><strong>元形式と同じ（推奨）:</strong> ストリームコピー（`-c copy`）により、画質劣化なし・数秒で高速分割。</li>
-            <li><strong>形式変換あり:</strong> 各パートごとに再エンコードを行い指定コンテナに変換。</li>
+            <li><strong>高精度モード:</strong> 映像を再エンコードし、フレーム単位で指定秒数を厳密に守ります。Xの140秒制限やLINEの5分制限オーバーを防ぎたい場合に必須です。</li>
+            <li><strong>超高速モード:</strong> 映像のキーフレーム（基準コマ）単位で切り出すため数秒で完了しますが、キーフレームの位置に応じて前後に数秒の誤差が出ます。</li>
           </ul>
         </div>
         <div class="spec-group">
