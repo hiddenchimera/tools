@@ -5,7 +5,7 @@ let isLoaded = false;
 let isAudioInput = false;
 let isImageTransparent = false;
 let inputDuration = 0;
-let isCancelled = false; // キャンセル判定フラグ
+let isCancelled = false;
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
@@ -236,11 +236,18 @@ function parseTimeToSeconds(timeStr) {
   return 0;
 }
 
-// 進捗表示を更新する共通関数
+// 進捗表示を更新する共通関数（y = -(x-1)^2 + 1 の曲線イージング）
 function updateProgress(percent) {
   if (isCancelled) return;
   const clamped = Math.min(99, Math.max(0, Math.round(percent)));
-  progressBar.style.width = `${clamped}%`;
+  
+  // xを 0.0〜1.0 に正規化
+  const x = clamped / 100;
+  // 放物線イージング: y = 1 - (1 - x)^2
+  const curvedPercent = (1 - Math.pow(1 - x, 2)) * 100;
+
+  // バーの見た目幅は曲線補正、数字テキストは正確な実進捗を表示
+  progressBar.style.width = `${curvedPercent.toFixed(1)}%`;
   statusText.textContent = `変換中... ${clamped}%`;
 }
 
@@ -268,7 +275,7 @@ cancelBtn.addEventListener('click', () => {
 
   try {
     if (ffmpeg) {
-      ffmpeg.exit(); // WebAssemblyインスタンスを安全に強制破棄
+      ffmpeg.exit();
     }
   } catch (err) {
     console.warn('ffmpeg exit:', err);
