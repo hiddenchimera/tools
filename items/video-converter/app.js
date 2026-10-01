@@ -23,7 +23,6 @@ CommonUtils.initDropzone(dropzone, (file) => {
   currentFile = file;
   videoPreview.src = URL.createObjectURL(file);
 
-  // 入力ファイルと同じ拡張子の場合は自動で別の候補に切り替える
   const ext = (file.name.substring(file.name.lastIndexOf('.') + 1) || '').toLowerCase();
   if (targetFormatSelect.value === ext) {
     targetFormatSelect.value = (ext === 'mp4') ? 'webm' : 'mp4';
@@ -35,12 +34,10 @@ CommonUtils.initDropzone(dropzone, (file) => {
   convertBtn.disabled = false;
 });
 
-// フォーマット切り替え時のUI調整
 targetFormatSelect.addEventListener('change', updateUIForFormat);
 
 function updateUIForFormat() {
   const fmt = targetFormatSelect.value;
-  // GIFやWAVはプリセットの影響が少ないため表示をシンプルに
   if (fmt === 'gif' || fmt === 'wav') {
     qualityGroup.style.display = 'none';
   } else {
@@ -53,7 +50,7 @@ async function loadFFmpeg() {
   if (isLoaded) return;
   const { createFFmpeg } = FFmpeg;
   ffmpeg = createFFmpeg({
-    log: false,
+    log: true, // 詳細ログを出力
     corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
   });
 
@@ -88,6 +85,7 @@ convertBtn.addEventListener('click', async () => {
     const outputName = `output.${targetFormat}`;
 
     statusText.textContent = '動画ファイルを読み込み中...';
+    // 依存を排除して直接 Uint8Array で渡す
     const fileData = new Uint8Array(await currentFile.arrayBuffer());
     ffmpeg.FS('writeFile', inputName, fileData);
 
@@ -96,7 +94,6 @@ convertBtn.addEventListener('click', async () => {
     const preset = qualityPresetSelect.value;
     let ffmpegArgs = ['-i', inputName];
 
-    // フォーマットごとのエンコード分岐
     switch (targetFormat) {
       case 'mp4':
       case 'mov':
@@ -135,11 +132,10 @@ convertBtn.addEventListener('click', async () => {
       }
 
       case 'avi': {
-        // レガシーAVI形式（MPEG-4 + MP3）
         ffmpegArgs.push(
           '-c:v', 'mpeg4',
           '-qscale:v', preset === 'high' ? '3' : '6',
-          '-c:a', 'libmp3lame',
+          '-c:a', 'mp3',
           '-b:a', '128k',
           outputName
         );
@@ -147,7 +143,6 @@ convertBtn.addEventListener('click', async () => {
       }
 
       case 'gif': {
-        // GIFアニメ（パレット生成で綺麗に変換）
         ffmpegArgs.push(
           '-vf', 'fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
           '-loop', '0',
@@ -215,7 +210,7 @@ convertBtn.addEventListener('click', async () => {
 
   } catch (error) {
     console.error(error);
-    alert('変換処理中にエラーが発生しました。ファイル形式やサイズをご確認ください。');
+    alert('変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
     statusText.textContent = 'エラーが発生しました';
   } finally {
     convertBtn.disabled = false;
