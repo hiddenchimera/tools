@@ -8,7 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <title>動画自動分割ツール（X/Twitter・LINE・SNS対応） | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="長尺動画をX（140秒）やLINEアルバム（5分/300秒）の制限、指定秒数ごとに自動で均等分割。フレーム精度の厳密カットと高速切り出しに対応。">
+  <meta name="description" content="長尺動画をX（140秒）やLINEアルバム（5分/300秒）の制限、指定秒数ごとに自動で均等分割。フレーム精度の厳密カット、のりしろ重複、個別ダウンロード対応。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -152,6 +152,88 @@
     .btn-cancel:hover {
       background-color: #dc2626;
     }
+
+    /* 完了・ダウンロード結果パネル */
+    .download-results-panel {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    .results-title {
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .zip-download-btn {
+      width: 100%;
+      margin-bottom: 1rem;
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .part-items-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .part-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .part-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .part-item-title {
+      font-weight: 500;
+    }
+    .part-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .part-dl-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .part-dl-btn:hover {
+      background: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+    }
+    /* 512MBアラート用バッジ */
+    .size-alert-box {
+      display: none;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      border-radius: 6px;
+      color: #fca5a5;
+      font-size: 0.825rem;
+      line-height: 1.5;
+    }
+
     .spec-details {
       margin-top: 3rem;
       padding: 1rem 1.25rem;
@@ -205,7 +287,7 @@
     <h2>動画自動分割ツール（X/Twitter・LINE・SNS対応）</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
       長尺の動画ファイルを、X（旧Twitter）の140秒制限やLINEアルバムの5分制限、指定秒数ごとに自動で均等分割します。<br>
-      SNS投稿用に秒数を厳密に切り出す「高精度モード」と、処理速度最優先の「超高速モード」を選べます。
+      フレーム精度の厳密カット、のりしろ（重複）分割、個別ダウンロード、512MB上限チェックに対応。
     </p>
 
     <!-- ファイルドロップエリア -->
@@ -242,7 +324,18 @@
           <input type="number" id="custom-seconds-input" min="1" max="7200" value="140" placeholder="例: 140">
         </div>
 
-        <!-- 切り出しモード（精度 vs 速度） -->
+        <!-- のりしろ（重複時間）設定 -->
+        <div class="form-group">
+          <label for="overlap-select">のりしろ（話や曲の途切れ防止）</label>
+          <select id="overlap-select">
+            <option value="0" selected>なし（通常均等分割）</option>
+            <option value="1">1秒の重複（会話やつなぎ推奨）</option>
+            <option value="2">2秒の重複</option>
+            <option value="3">3秒の重複</option>
+          </select>
+        </div>
+
+        <!-- 切り出しモード -->
         <div class="form-group">
           <label for="cut-mode">切り出し精度</label>
           <select id="cut-mode">
@@ -251,7 +344,7 @@
           </select>
         </div>
 
-        <!-- 出力フォーマット設定 -->
+        <!-- 出力形式 -->
         <div class="form-group">
           <label for="target-format">出力形式</label>
           <select id="target-format">
@@ -274,7 +367,7 @@
 
       <div class="notice-box">
         💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
-        ※「高精度」を選ぶと、Xの140秒制限などを1秒たりとも超えないように厳密な秒数でカットされます。
+        ※分割完了後、まとめてZIPでダウンロードするか、各パートを1本ずつ直接ダウンロードするかを選べます。
       </div>
 
       <!-- 進捗・処理エリア -->
@@ -284,6 +377,24 @@
         </div>
         <div id="status-text" class="status-text">分割処理中...</div>
         <button id="cancel-btn" class="btn-cancel" type="button" style="display: none;">✖ 処理を中止する</button>
+      </div>
+
+      <!-- 完了・ダウンロード結果パネル -->
+      <div id="download-results-panel" class="download-results-panel">
+        <div class="results-title">
+          <span>🎉 分割が完了しました</span>
+          <span id="results-count-badge" style="font-size: 0.8rem; color: var(--text-muted);">全 - 本</span>
+        </div>
+
+        <!-- 512MBアラート（該当ファイルがある場合のみ表示） -->
+        <div id="size-alert-box" class="size-alert-box">
+          ⚠️ <strong>ファイルサイズ注意</strong>: 512MBを超えているパートがあります。X（Twitter）の一般投稿制限（512MB以下）を超えているため、そのままではアップロードできない可能性があります。
+        </div>
+
+        <button id="zip-download-btn" class="btn zip-download-btn">📦 すべてまとめてZIPダウンロード</button>
+
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">各パートを個別に保存：</div>
+        <div id="part-items-container" class="part-items-container"></div>
       </div>
     </div>
 
@@ -298,17 +409,16 @@
           </ul>
         </div>
         <div class="spec-group">
-          <h4>切り出し方式の違い</h4>
+          <h4>のりしろ（オーバーラップ）仕様</h4>
           <ul>
-            <li><strong>高精度モード:</strong> 映像を再エンコードし、フレーム単位で指定秒数を厳密に守ります。Xの140秒制限やLINEの5分制限オーバーを防ぎたい場合に必須です。</li>
-            <li><strong>超高速モード:</strong> 映像のキーフレーム（基準コマ）単位で切り出すため数秒で完了しますが、キーフレームの位置に応じて前後に数秒の誤差が出ます。</li>
+            <li>指定秒数（1〜3秒）だけ、前のパートの終端と次のパートの先頭が重なるように切り出します。</li>
+            <li>ツリー投稿時に会話や音声が途中で切れて聞き取りにくくなるのを防止します。</li>
           </ul>
         </div>
         <div class="spec-group">
-          <h4>出力・保存仕様</h4>
+          <h4>ファイルサイズ制限（512MB）</h4>
           <ul>
-            <li>1本のみ（指定秒数未満）: 単体動画ファイルとして直接ダウンロード。</li>
-            <li>複数本: 各パートを `part1`, `part2`... と命名し、1つのZIPファイルにまとめてダウンロード。</li>
+            <li>X（Twitter）の動画アップロード上限は512MBです。各パートの生成サイズを自動検知し、オーバー時は警告を表示します。</li>
           </ul>
         </div>
       </div>
