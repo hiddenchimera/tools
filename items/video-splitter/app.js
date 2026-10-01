@@ -166,11 +166,10 @@ convertBtn.addEventListener('click', async () => {
 
   const segmentSec = getTargetSegmentSeconds();
   const totalParts = Math.ceil(videoDuration / segmentSec);
-  const cutMode = cutModeSelect.value; // 'precise' または 'fast'
+  const cutMode = cutModeSelect.value;
   const targetFormatMode = targetFormatSelect.value;
   const inExt = (currentFile.name.substring(currentFile.name.lastIndexOf('.') + 1) || 'mp4').toLowerCase();
 
-  // 出力拡張子の決定
   let outExt = inExt;
   if (targetFormatMode !== 'copy') {
     outExt = targetFormatMode;
@@ -206,8 +205,8 @@ convertBtn.addEventListener('click', async () => {
 
       let ffmpegArgs = [];
 
-      // 超高速モード（-c copy）: キーフレーム単位で切るため数秒ズレる可能性あり
       if (cutMode === 'fast' && targetFormatMode === 'copy') {
+        // 超高速モード: -i の前に -ss を置くキーフレームシーク
         ffmpegArgs = [
           '-ss', String(startSec),
           '-i', inputName,
@@ -216,22 +215,23 @@ convertBtn.addEventListener('click', async () => {
           '-avoid_negative_ts', 'make_zero',
           outputName
         ];
-      } 
-      // 高精度モード（再エンコード）: フレーム単位で完全に正確な秒数で切り出す
-      else {
+      } else {
+        // 高精度モード: -i の後ろに -ss と -t を置く（Output Seeking）
+        // フレーム単位で厳密にデコードされ、1秒のズレも許さずピッタリ切り出されます
         const isWebm = (outExt === 'webm');
         const vCodec = isWebm ? 'libvpx' : 'libx264';
         const aCodec = isWebm ? 'libvorbis' : 'aac';
 
         ffmpegArgs = [
-          '-ss', String(startSec),
           '-i', inputName,
+          '-ss', String(startSec),
           '-t', String(durationSec),
           '-c:v', vCodec,
           '-preset', 'ultrafast',
           '-crf', '23',
           '-c:a', aCodec,
           '-b:a', '128k',
+          '-avoid_negative_ts', 'make_zero',
           outputName
         ];
       }
