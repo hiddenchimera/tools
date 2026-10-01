@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>画像フォーマット相互変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="WebP・JPG・PNG・AVIFをブラウザ上で相互変換・一括圧縮。サーバー送信なし、EXIF情報自動削除で安全・高速に処理します。">
+  <script src="/coi-serviceworker.js"></script>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+  <title>動画・音声フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
+  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・画像背景）にも対応。完全クライアント処理で安心。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -16,7 +19,7 @@
       color: var(--primary-color);
       text-decoration: none;
     }
-    .settings-panel {
+    .control-panel {
       display: none;
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -24,86 +27,96 @@
       padding: 1.5rem;
       margin-top: 1.5rem;
     }
-    .options-grid {
+    .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
+      gap: 1.25rem;
       margin-bottom: 1.5rem;
     }
-    .input-group {
+    .form-group {
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.5rem;
     }
-    .input-group label {
+    .form-group label {
       font-size: 0.85rem;
       color: var(--text-muted);
     }
-    .input-group select, .input-group input[type="range"] {
+    .form-group select {
       background: var(--bg-color);
       border: 1px solid var(--border-color);
       color: var(--text-color);
       padding: 0.6rem;
       border-radius: 6px;
     }
-    .file-list {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
+    .media-preview-wrapper {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 1rem;
       display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .file-item {
-      display: flex;
+      justify-content: center;
       align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1rem;
+      min-height: 120px;
+    }
+    .media-preview-wrapper video {
+      max-width: 100%;
+      max-height: 360px;
+      display: inline-block;
+    }
+    .media-preview-wrapper audio {
+      width: 100%;
+      max-width: 500px;
+    }
+    .notice-box {
+      font-size: 0.8rem;
+      color: var(--text-muted);
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      font-size: 0.875rem;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      line-height: 1.5;
     }
-    .file-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      overflow: hidden;
-    }
-    .file-thumb {
-      width: 42px;
-      height: 42px;
-      object-fit: cover;
-      border-radius: 4px;
-      background: #000;
-      flex-shrink: 0;
-    }
-    .file-name {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 220px;
-    }
-    .file-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-    .file-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .badge {
+    .input-info-badge {
       display: inline-block;
-      padding: 0.2rem 0.5rem;
       font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
       border-radius: 4px;
-      background: var(--border-color);
-      color: var(--text-color);
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 0.5rem;
     }
-    .badge.success {
-      background: #059669;
-      color: #fff;
+    /* 背景画像設定エリア用スタイル */
+    .bg-options-panel {
+      display: none;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .bg-image-dropzone {
+      margin-top: 0.75rem;
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-color);
+      transition: border-color 0.2s;
+    }
+    .bg-image-dropzone:hover {
+      border-color: var(--primary-color);
+    }
+    .bg-image-preview {
+      max-width: 160px;
+      max-height: 90px;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      display: none;
+      border: 1px solid var(--border-color);
     }
   </style>
 </head>
@@ -117,52 +130,95 @@
 
   <main>
     <div class="breadcrumb">
-      <a href="../../">トップ</a> &gt; 画像フォーマット相互変換ツール
+      <a href="../../">トップ</a> &gt; 動画・音声フォーマット変換ツール
     </div>
 
-    <h2>画像フォーマット相互変換ツール</h2>
+    <h2>動画・音声フォーマット変換ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-      WebP / JPG / PNG / AVIF 形式の相互変換・圧縮を行えます。<br>
-      複数ファイルの一括変換に対応。EXIF情報（位置情報・撮影データ）は自動で消去され安全です。
+      動画（MP4/MOV/WebM等）や音声（MP3/WAV/M4A等）を相互変換します。<br>
+      音声からSNS・動画サイト投稿用の動画化（黒・白・画像背景）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
     </p>
 
     <!-- ファイルドロップエリア -->
     <div id="dropzone" class="dropzone">
-      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🖼️</div>
-      <h3>画像ファイルをドラッグ＆ドロップ</h3>
-      <p>またはクリックして選択（複数選択可 / WebP, JPG, PNG, AVIFなど）</p>
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔄</div>
+      <h3>動画・音声ファイルをドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（MP4, MOV, WebM, MP3, WAV, M4A, FLACなど）</p>
     </div>
 
     <!-- 設定・変換パネル -->
-    <div id="settings-panel" class="settings-panel">
-      <div class="options-grid">
-        <div class="input-group">
+    <div id="control-panel" class="control-panel">
+      <div id="input-info-badge" class="input-info-badge">検出ファイル: -</div>
+      
+      <div class="media-preview-wrapper">
+        <video id="video-preview" controls style="display: none;"></video>
+        <audio id="audio-preview" controls style="display: none;"></audio>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
           <label for="target-format">出力フォーマット</label>
           <select id="target-format">
-            <option value="image/webp">WebP（軽量・Web推奨）</option>
-            <option value="image/jpeg">JPG（標準・写真向け）</option>
-            <option value="image/png">PNG（ロスレス・透過保持）</option>
-            <option value="image/avif">AVIF（高圧縮率）</option>
+            <optgroup label="動画フォーマット（音声入力時は動画化）">
+              <option value="mp4">MP4（H.264 / 汎用推奨）</option>
+              <option value="webm">WebM（VP9 / Web高圧縮）</option>
+              <option value="mov">MOV（QuickTime形式）</option>
+              <option value="mkv">MKV（Matroskaコンテナ）</option>
+              <option value="avi">AVI（レガシー機器互換）</option>
+            </optgroup>
+            <optgroup label="アニメーション">
+              <option value="gif">GIFアニメーション（動画入力推奨）</option>
+            </optgroup>
+            <optgroup label="音声フォーマット">
+              <option value="mp3">MP3（標準音声）</option>
+              <option value="wav">WAV（非圧縮・ロスレス）</option>
+              <option value="aac">AAC / M4A（高音質圧縮）</option>
+            </optgroup>
           </select>
         </div>
 
-        <div class="input-group" id="quality-group">
-          <label for="quality-range">画質 / 圧縮率: <span id="quality-val">90%</span></label>
-          <input type="range" id="quality-range" min="10" max="100" value="90">
+        <div class="form-group" id="quality-group">
+          <label for="quality-preset">品質とエンコード設定</label>
+          <select id="quality-preset">
+            <option value="fast">標準・高速（推奨）</option>
+            <option value="high">高画質 / 高音質</option>
+            <option value="small">ファイルサイズ優先（軽量化）</option>
+          </select>
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-        <h4 style="margin: 0;">対象ファイル一覧 (<span id="file-count">0</span>件)</h4>
-        <button id="clear-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; text-decoration: underline;">すべてクリア</button>
+      <!-- 音声→動画化の時のみ表示される背景設定エリア -->
+      <div id="bg-options-panel" class="bg-options-panel">
+        <div class="form-group">
+          <label for="bg-type-select"><strong>動画の背景スタイル</strong></label>
+          <select id="bg-type-select">
+            <option value="black">黒背景（デフォルト・最速）</option>
+            <option value="white">白背景</option>
+            <option value="image">指定した画像を使用</option>
+          </select>
+        </div>
+
+        <div id="bg-image-section" style="display: none;">
+          <input type="file" id="bg-image-input" accept="image/*" style="display: none;">
+          <div id="bg-image-dropzone" class="bg-image-dropzone">
+            <div id="bg-image-label">🖼️ ここをクリックまたは画像をドロップして選択</div>
+            <img id="bg-image-preview" class="bg-image-preview" alt="背景プレビュー">
+          </div>
+        </div>
       </div>
 
-      <ul id="file-list" class="file-list"></ul>
+      <button id="convert-btn" class="btn" style="width: 100%;">変換を開始する</button>
 
-      <button id="convert-btn" class="btn" style="width: 100%; margin-top: 1rem;">一括変換を実行する</button>
+      <div class="notice-box">
+        💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
+        ※音声から動画（MP4等）に変換する場合、自動で1280x720（アスペクト比16:9）の動画が生成されます。
+      </div>
 
-      <div id="download-all-wrapper" style="display: none; margin-top: 1.5rem; text-align: center;">
-        <button id="download-all-btn" class="btn" style="background: #059669;">すべての変換済み画像を保存</button>
+      <div id="progress-wrapper" class="progress-wrapper">
+        <div class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="status-text" class="status-text">変換処理中...</div>
       </div>
     </div>
   </main>
