@@ -88,7 +88,8 @@ convertBtn.addEventListener('click', async () => {
     const outputName = `output.${targetFormat}`;
 
     statusText.textContent = '動画ファイルを読み込み中...';
-    ffmpeg.FS('writeFile', inputName, await CommonUtils.fetchFile(currentFile));
+    const fileData = new Uint8Array(await currentFile.arrayBuffer());
+    ffmpeg.FS('writeFile', inputName, fileData);
 
     statusText.textContent = '変換処理を実行中...';
 
