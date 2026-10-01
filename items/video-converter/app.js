@@ -1,10 +1,13 @@
 let ffmpeg = null;
 let currentFile = null;
 let isLoaded = false;
+let isAudioInput = false;
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
 const videoPreview = document.getElementById('video-preview');
+const audioPreview = document.getElementById('audio-preview');
+const inputInfoBadge = document.getElementById('input-info-badge');
 const targetFormatSelect = document.getElementById('target-format');
 const qualityGroup = document.getElementById('quality-group');
 const qualityPresetSelect = document.getElementById('quality-preset');
@@ -13,26 +16,55 @@ const progressWrapper = document.getElementById('progress-wrapper');
 const progressBar = document.getElementById('progress-bar');
 const statusText = document.getElementById('status-text');
 
+// 拡張子リスト
+const VIDEO_EXTS = ['mp4', 'mov', 'webm', 'mkv', 'avi', 'flv', 'wmv', 'm4v'];
+const AUDIO_EXTS = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac', 'wma'];
+
 // ファイル受付
 CommonUtils.initDropzone(dropzone, (file) => {
-  if (!file.type.startsWith('video/') && !file.name.match(/\.(mov|mp4|webm|mkv|avi|flv|wmv)$/i)) {
-    alert('動画ファイルを選択してください。');
+  const ext = (file.name.substring(file.name.lastIndexOf('.') + 1) || '').toLowerCase();
+  const isVideo = file.type.startsWith('video/') || VIDEO_EXTS.includes(ext);
+  const isAudio = file.type.startsWith('audio/') || AUDIO_EXTS.includes(ext);
+
+  if (!isVideo && !isAudio) {
+    alert('動画または音声ファイル（MP4, MOV, WebM, MP3, WAV, M4A等）を選択してください。');
     return;
   }
 
   currentFile = file;
-  videoPreview.src = URL.createObjectURL(file);
+  isAudioInput = isAudio && !file.type.startsWith('video/');
 
-  const ext = (file.name.substring(file.name.lastIndexOf('.') + 1) || '').toLowerCase();
-  if (targetFormatSelect.value === ext) {
-    targetFormatSelect.value = (ext === 'mp4') ? 'webm' : 'mp4';
+  const fileUrl = URL.createObjectURL(file);
+
+  // プレビューの切り替え
+  if (isAudioInput) {
+    videoPreview.style.display = 'none';
+    audioPreview.style.display = 'block';
+    audioPreview.src = fileUrl;
+    inputInfoBadge.textContent = `🎵 音声ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
+    
+    // 音声が入力された場合、デフォルト出力先をMP3またはMP4に設定
+    if (['mp3', 'wav', 'aac'].includes(ext)) {
+      targetFormatSelect.value = (ext === 'mp3') ? 'wav' : 'mp3';
+    } else {
+      targetFormatSelect.value = 'mp3';
+    }
+  } else {
+    audioPreview.style.display = 'none';
+    videoPreview.style.display = 'block';
+    videoPreview.src = fileUrl;
+    inputInfoBadge.textContent = `🎬 動画ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
+
+    if (targetFormatSelect.value === ext) {
+      targetFormatSelect.value = (ext === 'mp4') ? 'webm' : 'mp4';
+    }
   }
 
   updateUIForFormat();
   controlPanel.style.display = 'block';
   progressWrapper.style.display = 'none';
   convertBtn.disabled = false;
-});
+}, '*'); // acceptTypeを緩めて音声も動画も受け入れる
 
 targetFormatSelect.addEventListener('change', updateUIForFormat);
 
@@ -50,7 +82,7 @@ async function loadFFmpeg() {
   if (isLoaded) return;
   const { createFFmpeg } = FFmpeg;
   ffmpeg = createFFmpeg({
-    log: true, // 詳細ログをコンソールに出力
+    log: true,
     corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
   });
 
@@ -79,120 +111,132 @@ convertBtn.addEventListener('click', async () => {
       }
     });
 
-    const inExt = currentFile.name.substring(currentFile.name.lastIndexOf('.') + 1) || 'mp4';
+    const inExt = (currentFile.name.substring(currentFile.name.lastIndexOf('.') + 1) || 'bin').toLowerCase();
     const inputName = `input.${inExt}`;
     const targetFormat = targetFormatSelect.value;
     const outputName = `output.${targetFormat}`;
 
-    statusText.textContent = '動画ファイルを読み込み中...';
-    // 直接 Uint8Array で渡す（キャッシュ問題の回避）
+    statusText.textContent = 'ファイルを読み込み中...';
     const fileData = new Uint8Array(await currentFile.arrayBuffer());
     ffmpeg.FS('writeFile', inputName, fileData);
 
     statusText.textContent = '変換処理を実行中...';
 
     const preset = qualityPresetSelect.value;
-    let ffmpegArgs = ['-i', inputName];
+    let ffmpegArgs = [];
 
-    switch (targetFormat) {
-      case 'mp4':
-      case 'mov':
-      case 'mkv': {
-        let crf = '23';
-        let speed = 'ultrafast';
-        if (preset === 'high') { crf = '19'; speed = 'fast'; }
-        if (preset === 'small') { crf = '28'; speed = 'ultrafast'; }
+    const isTargetVideo = ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(targetFormat);
+    const isTargetAudio = ['mp3', 'wav', 'aac'].includes(targetFormat);
 
-        ffmpegArgs.push(
-          '-c:v', 'libx264',
-          '-preset', speed,
-          '-crf', crf,
-          '-c:a', 'aac',
-          '-b:a', '128k',
-          '-movflags', '+faststart',
-          outputName
-        );
-        break;
-      }
+    // ==========================================
+    // パターン1: 音声ファイル ➔ 動画化（黒背景を追加）
+    // ==========================================
+    if (isAudioInput && isTargetVideo) {
+      // 仮想黒背景（1280x720 30fps）を合成
+      ffmpegArgs.push(
+        '-f', 'lavfi', '-i', 'color=c=black:s=1280x720:r=30',
+        '-i', inputName,
+        '-c:v', targetFormat === 'webm' ? 'libvpx-vp9' : 'libx264',
+        '-tune', 'stillimage',
+        '-preset', 'ultrafast',
+        '-c:a', targetFormat === 'webm' ? 'libopus' : 'aac',
+        '-b:a', '192k',
+        '-pix_fmt', 'yuv420p',
+        '-shortest',
+        outputName
+      );
+    } 
+    // ==========================================
+    // パターン2: 音声のみ出力（動画からの抽出、または音声相互変換）
+    // ==========================================
+    else if (isTargetAudio) {
+      ffmpegArgs.push('-i', inputName, '-vn');
 
-      case 'webm': {
-        let crf = '32';
-        if (preset === 'high') crf = '26';
-        if (preset === 'small') crf = '38';
-
-        ffmpegArgs.push(
-          '-c:v', 'libvpx-vp9',
-          '-crf', crf,
-          '-b:v', '0',
-          '-c:a', 'libopus',
-          '-speed', '8',
-          outputName
-        );
-        break;
-      }
-
-      case 'avi': {
-        ffmpegArgs.push(
-          '-c:v', 'mpeg4',
-          '-qscale:v', preset === 'high' ? '3' : '6',
-          '-c:a', 'mp3',
-          '-b:a', '128k',
-          outputName
-        );
-        break;
-      }
-
-      case 'gif': {
-        ffmpegArgs.push(
-          '-vf', 'fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
-          '-loop', '0',
-          outputName
-        );
-        break;
-      }
-
-      case 'mp3': {
+      if (targetFormat === 'mp3') {
         const bitrates = { fast: '128k', high: '256k', small: '96k' };
-        ffmpegArgs.push(
-          '-vn',
-          '-b:a', bitrates[preset] || '128k',
-          outputName
-        );
-        break;
-      }
-
-      case 'wav': {
-        ffmpegArgs.push(
-          '-vn',
-          '-c:a', 'pcm_s16le',
-          outputName
-        );
-        break;
-      }
-
-      case 'aac': {
+        ffmpegArgs.push('-b:a', bitrates[preset] || '128k', outputName);
+      } else if (targetFormat === 'wav') {
+        ffmpegArgs.push('-c:a', 'pcm_s16le', outputName);
+      } else if (targetFormat === 'aac') {
         const bitrates = { fast: '128k', high: '256k', small: '96k' };
-        ffmpegArgs.push(
-          '-vn',
-          '-c:a', 'aac',
-          '-b:a', bitrates[preset] || '128k',
-          outputName
-        );
-        break;
+        ffmpegArgs.push('-c:a', 'aac', '-b:a', bitrates[preset] || '128k', outputName);
+      }
+    } 
+    // ==========================================
+    // パターン3: 通常の動画 ➔ 動画変換 / GIF変換
+    // ==========================================
+    else {
+      ffmpegArgs.push('-i', inputName);
+
+      switch (targetFormat) {
+        case 'mp4':
+        case 'mov':
+        case 'mkv': {
+          let crf = '23';
+          let speed = 'ultrafast';
+          if (preset === 'high') { crf = '19'; speed = 'fast'; }
+          if (preset === 'small') { crf = '28'; speed = 'ultrafast'; }
+
+          ffmpegArgs.push(
+            '-c:v', 'libx264',
+            '-preset', speed,
+            '-crf', crf,
+            '-c:a', 'aac',
+            '-b:a', '128k',
+            '-movflags', '+faststart',
+            outputName
+          );
+          break;
+        }
+
+        case 'webm': {
+          let crf = '32';
+          if (preset === 'high') crf = '26';
+          if (preset === 'small') crf = '38';
+
+          ffmpegArgs.push(
+            '-c:v', 'libvpx-vp9',
+            '-crf', crf,
+            '-b:v', '0',
+            '-c:a', 'libopus',
+            '-speed', '8',
+            outputName
+          );
+          break;
+        }
+
+        case 'avi': {
+          ffmpegArgs.push(
+            '-c:v', 'mpeg4',
+            '-qscale:v', preset === 'high' ? '3' : '6',
+            '-c:a', 'mp3',
+            '-b:a', '128k',
+            outputName
+          );
+          break;
+        }
+
+        case 'gif': {
+          ffmpegArgs.push(
+            '-vf', 'fps=15,scale=480:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
+            '-loop', '0',
+            outputName
+          );
+          break;
+        }
       }
     }
 
     await ffmpeg.run(...ffmpegArgs);
 
-    // 出力ファイルが正常に生成されたか確認してから読み込む
     let data;
     try {
       data = ffmpeg.FS('readFile', outputName);
     } catch (readErr) {
-      if (['mp3', 'wav', 'aac'].includes(targetFormat)) {
-        throw new Error('音声トラックが見つかりませんでした。動画に音声が含まれているか確認してください。');
+      if (isTargetAudio && !isAudioInput) {
+        throw new Error('動画内に音声トラックが見つかりませんでした。');
       } else {
-        throw new Error('出力ファイルの書き出しに失敗しました。エンコード設定をご確認ください。');
+        throw new Error('変換ファイルの生成に失敗しました。対応していないコーデックの可能性があります。');
       }
     }
 
