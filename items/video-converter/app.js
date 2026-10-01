@@ -3,7 +3,8 @@ let currentFile = null;
 let currentBgImageFile = null;
 let isLoaded = false;
 let isAudioInput = false;
-let isImageTransparent = false; // 透過PNG判定フラグ
+let isImageTransparent = false;
+let inputDuration = 0; // ファイルの総再生時間（秒）
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
@@ -56,12 +57,16 @@ CommonUtils.initDropzone(dropzone, (file) => {
   isAudioInput = isAudio && !file.type.startsWith('video/');
 
   const fileUrl = URL.createObjectURL(file);
+  inputDuration = 0;
 
-  // プレビューの切り替え
+  // プレビューの切り替え ＆ 長さ（duration）の取得
   if (isAudioInput) {
     videoPreview.style.display = 'none';
     audioPreview.style.display = 'block';
     audioPreview.src = fileUrl;
+    audioPreview.onloadedmetadata = () => {
+      inputDuration = audioPreview.duration;
+    };
     inputInfoBadge.textContent = `🎵 音声ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
     
     if (['mp3', 'wav', 'aac'].includes(ext)) {
@@ -73,6 +78,9 @@ CommonUtils.initDropzone(dropzone, (file) => {
     audioPreview.style.display = 'none';
     videoPreview.style.display = 'block';
     videoPreview.src = fileUrl;
+    videoPreview.onloadedmetadata = () => {
+      inputDuration = videoPreview.duration;
+    };
     inputInfoBadge.textContent = `🎬 動画ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
 
     if (targetFormatSelect.value === ext) {
@@ -100,7 +108,7 @@ pngBackdropType.addEventListener('change', () => {
   pngCustomColorContainer.style.display = (pngBackdropType.value === 'color') ? 'block' : 'none';
 });
 
-// 背景画像の受付（クリック＆ドラッグ＆ドロップ）
+// 背景画像の受付
 bgImageDropzone.addEventListener('click', () => bgImageInput.click());
 
 bgImageDropzone.addEventListener('dragover', (e) => {
@@ -137,7 +145,6 @@ async function handleBgImageFile(file) {
   bgImagePreview.style.display = 'inline-block';
   bgImageLabel.textContent = `選択中: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
 
-  // 透過ピクセルを含むか判定
   isImageTransparent = await checkIfImageHasTransparency(file);
 
   if (isImageTransparent) {
@@ -202,14 +209,12 @@ function updateUIForFormat() {
   const fmt = targetFormatSelect.value;
   const isTargetVideo = ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(fmt);
 
-  // GIFやWAVのときは画質設定を隠す
   if (fmt === 'gif' || fmt === 'wav') {
     qualityGroup.style.display = 'none';
   } else {
     qualityGroup.style.display = 'flex';
   }
 
-  // 「音声ファイル」かつ「動画形式への変換」の時のみ背景設定パネルを表示
   if (isAudioInput && isTargetVideo) {
     bgOptionsPanel.style.display = 'block';
     const type = bgTypeSelect.value;
@@ -218,6 +223,22 @@ function updateUIForFormat() {
   } else {
     bgOptionsPanel.style.display = 'none';
   }
+}
+
+// 時間文字列（HH:MM:SS.ms）を秒数に変換
+function parseTimeToSeconds(timeStr) {
+  const parts = timeStr.split(':');
+  if (parts.length === 3) {
+    return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+  }
+  return 0;
+}
+
+// 進捗表示を更新する共通関数
+function updateProgress(percent) {
+  const clamped = Math.min(99, Math.max(0, Math.round(percent)));
+  progressBar.style.width = `${clamped}%`;
+  statusText.textContent = `変換中... ${clamped}%`;
 }
 
 // FFmpegのロード
@@ -242,7 +263,6 @@ convertBtn.addEventListener('click', async () => {
   const isTargetVideo = ['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(targetFormat);
   const isTargetAudio = ['mp3', 'wav', 'aac'].includes(targetFormat);
 
-  // 背景画像必須チェック
   if (isAudioInput && isTargetVideo && bgTypeSelect.value === 'image' && !currentBgImageFile) {
     alert('背景にする画像ファイルを選択してください。');
     return;
@@ -258,11 +278,22 @@ convertBtn.addEventListener('click', async () => {
   try {
     await loadFFmpeg();
 
+    // 1. 標準 progress リスナー（MP4等で有効）
     ffmpeg.setProgress(({ ratio }) => {
-      if (ratio >= 0 && ratio <= 1) {
-        const percent = Math.min(100, Math.round(ratio * 100));
-        progressBar.style.width = `${percent}%`;
-        statusText.textContent = `変換中... ${percent}%`;
+      if (ratio > 0 && ratio <= 1) {
+        updateProgress(ratio * 100);
+      }
+    });
+
+    // 2. ログ解析リスナー（WebM等の ratio が出ない場合の確実なバックアップ）
+    ffmpeg.setLogger(({ message }) => {
+      if (inputDuration > 0 && message.includes('time=')) {
+        const match = message.match(/time=([0-9:.]+)/);
+        if (match && match[1]) {
+          const currentSec = parseTimeToSeconds(match[1]);
+          const percent = (currentSec / inputDuration) * 100;
+          updateProgress(percent);
+        }
       }
     });
 
@@ -274,7 +305,6 @@ convertBtn.addEventListener('click', async () => {
     const fileData = new Uint8Array(await currentFile.arrayBuffer());
     ffmpeg.FS('writeFile', inputName, fileData);
 
-    // 背景画像がある場合は書き込み
     if (isAudioInput && isTargetVideo && bgTypeSelect.value === 'image' && currentBgImageFile) {
       const imgExt = (currentBgImageFile.name.substring(currentBgImageFile.name.lastIndexOf('.') + 1) || 'png').toLowerCase();
       inputBgImageName = `bg_image.${imgExt}`;
@@ -294,7 +324,6 @@ convertBtn.addEventListener('click', async () => {
       const bgType = bgTypeSelect.value;
       const isWebm = (targetFormat === 'webm');
 
-      // WebM時はWebAssemblyで安定するVP8 + Vorbisを使用
       const vCodec = isWebm ? 'libvpx' : 'libx264';
       const aCodec = isWebm ? 'libvorbis' : 'aac';
 
@@ -307,7 +336,6 @@ convertBtn.addEventListener('click', async () => {
 
       if (bgType === 'image' && inputBgImageName) {
         if (isImageTransparent) {
-          // 透過PNGの場合: ベース背景色を生成し、その上に画像を中央オーバーレイ
           let baseColor = 'black';
           if (pngBackdropType.value === 'white') {
             baseColor = 'white';
@@ -326,7 +354,6 @@ convertBtn.addEventListener('click', async () => {
             outputName
           );
         } else {
-          // 不透過画像の場合: scale + pad (黒帯) で高速合成
           ffmpegArgs.push(
             '-loop', '1',
             '-i', inputBgImageName,
@@ -340,7 +367,6 @@ convertBtn.addEventListener('click', async () => {
           );
         }
       } else {
-        // 単色背景（黒・白・指定色）
         let colorParam = 'black';
         if (bgType === 'white') {
           colorParam = 'white';
@@ -359,7 +385,7 @@ convertBtn.addEventListener('click', async () => {
       }
     } 
     // ==========================================
-    // パターン2: 音声のみ出力（音声抽出 / 音声相互変換）
+    // パターン2: 音声のみ出力
     // ==========================================
     else if (isTargetAudio) {
       ffmpegArgs.push('-i', inputName, '-vn');
@@ -470,7 +496,6 @@ convertBtn.addEventListener('click', async () => {
     const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'converted';
     CommonUtils.downloadBlob(blob, `${baseName}.${targetFormat}`);
 
-    // FSクリーンアップ
     ffmpeg.FS('unlink', inputName);
     ffmpeg.FS('unlink', outputName);
     if (inputBgImageName) {
