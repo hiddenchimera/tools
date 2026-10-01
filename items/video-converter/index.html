@@ -7,7 +7,7 @@
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
   <title>動画・音声フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・指定色・画像背景）にも対応。完全クライアント処理で安心。">
+  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・指定色・画像背景・透過PNG背景合成）にも対応。完全クライアント処理で安心。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -138,6 +138,14 @@
       font-size: 0.9rem;
       color: var(--text-muted);
     }
+    .png-backdrop-box {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -156,7 +164,7 @@
     <h2>動画・音声フォーマット変換ツール</h2>
     <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
       動画（MP4/MOV/WebM等）や音声（MP3/WAV/M4A等）を相互変換します。<br>
-      音声からSNS・動画サイト投稿用の動画化（黒・白・指定色・画像背景）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
+      音声からSNS・動画サイト投稿用の動画化（黒・白・指定色・画像背景・透過PNG対応）や、動画からの音声抽出にも対応。サーバー送信なしで安全に処理されます。
     </p>
 
     <!-- ファイルドロップエリア -->
@@ -235,6 +243,24 @@
             <div id="bg-image-label">🖼️ ここをクリックまたは画像をドロップして選択</div>
             <img id="bg-image-preview" class="bg-image-preview" alt="背景プレビュー">
           </div>
+
+          <!-- 透過PNG検出時のみ表示される下敷き背景色設定 -->
+          <div id="bg-png-backdrop-section" class="png-backdrop-box">
+            <label style="font-size: 0.85rem; color: var(--primary-color); font-weight: 600;">✨ 透過PNGが検出されました：透過部分の背景色</label>
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <select id="png-backdrop-type">
+                <option value="black">黒背景</option>
+                <option value="white">白背景</option>
+                <option value="color">指定した色を使用</option>
+              </select>
+            </div>
+            <div id="png-custom-color-container" style="display: none; margin-top: 0.5rem;">
+              <div class="color-picker-wrapper">
+                <input type="color" id="png-backdrop-color-input" value="#0f172a">
+                <span id="png-backdrop-color-text" class="color-code-text">#0f172a</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -242,7 +268,7 @@
 
       <div class="notice-box">
         💡 <strong>完全ローカル処理</strong>: すべてのメディアデータはブラウザ内でのみ処理され、外部サーバーには一切送信されません。<br>
-        ※音声から動画（MP4等）に変換する場合、自動で1280x720（アスペクト比16:9）の動画が生成されます。
+        ※音声から動画（MP4等）に変換する場合、自動で1280x720（アスペクト比16:9）の動画が生成されます。透過画像は背後の色と綺麗に合成されます。
       </div>
 
       <div id="progress-wrapper" class="progress-wrapper">
@@ -259,6 +285,6 @@
   </footer>
 
   <script src="../../assets/js/common.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=4"></script>
 </body>
 </html>
