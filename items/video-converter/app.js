@@ -4,7 +4,8 @@ let currentBgImageFile = null;
 let isLoaded = false;
 let isAudioInput = false;
 let isImageTransparent = false;
-let inputDuration = 0; // ファイルの総再生時間（秒）
+let inputDuration = 0;
+let isCancelled = false; // キャンセル判定フラグ
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
@@ -18,6 +19,7 @@ const convertBtn = document.getElementById('convert-btn');
 const progressWrapper = document.getElementById('progress-wrapper');
 const progressBar = document.getElementById('progress-bar');
 const statusText = document.getElementById('status-text');
+const cancelBtn = document.getElementById('cancel-btn');
 
 // 背景選択用エレメント
 const bgOptionsPanel = document.getElementById('bg-options-panel');
@@ -236,6 +238,7 @@ function parseTimeToSeconds(timeStr) {
 
 // 進捗表示を更新する共通関数
 function updateProgress(percent) {
+  if (isCancelled) return;
   const clamped = Math.min(99, Math.max(0, Math.round(percent)));
   progressBar.style.width = `${clamped}%`;
   statusText.textContent = `変換中... ${clamped}%`;
@@ -243,7 +246,7 @@ function updateProgress(percent) {
 
 // FFmpegのロード
 async function loadFFmpeg() {
-  if (isLoaded) return;
+  if (isLoaded && ffmpeg) return;
   const { createFFmpeg } = FFmpeg;
   ffmpeg = createFFmpeg({
     log: true,
@@ -254,6 +257,32 @@ async function loadFFmpeg() {
   await ffmpeg.load();
   isLoaded = true;
 }
+
+// キャンセル処理
+cancelBtn.addEventListener('click', () => {
+  if (!confirm('変換処理を中止しますか？')) return;
+
+  isCancelled = true;
+  cancelBtn.disabled = true;
+  statusText.textContent = '変換を中止しています...';
+
+  try {
+    if (ffmpeg) {
+      ffmpeg.exit(); // WebAssemblyインスタンスを安全に強制破棄
+    }
+  } catch (err) {
+    console.warn('ffmpeg exit:', err);
+  } finally {
+    ffmpeg = null;
+    isLoaded = false;
+    setTimeout(() => {
+      progressWrapper.style.display = 'none';
+      convertBtn.disabled = false;
+      cancelBtn.disabled = false;
+      alert('変換処理を中止しました。設定を変更してやり直すことができます。');
+    }, 400);
+  }
+});
 
 // 変換メインロジック
 convertBtn.addEventListener('click', async () => {
@@ -268,7 +297,9 @@ convertBtn.addEventListener('click', async () => {
     return;
   }
 
+  isCancelled = false;
   convertBtn.disabled = true;
+  cancelBtn.disabled = false;
   progressWrapper.style.display = 'block';
   progressBar.style.width = '0%';
   statusText.textContent = '準備中...';
@@ -278,14 +309,12 @@ convertBtn.addEventListener('click', async () => {
   try {
     await loadFFmpeg();
 
-    // 1. 標準 progress リスナー（MP4等で有効）
     ffmpeg.setProgress(({ ratio }) => {
       if (ratio > 0 && ratio <= 1) {
         updateProgress(ratio * 100);
       }
     });
 
-    // 2. ログ解析リスナー（WebM等の ratio が出ない場合の確実なバックアップ）
     ffmpeg.setLogger(({ message }) => {
       if (inputDuration > 0 && message.includes('time=')) {
         const match = message.match(/time=([0-9:.]+)/);
@@ -466,16 +495,21 @@ convertBtn.addEventListener('click', async () => {
 
     await ffmpeg.run(...ffmpegArgs);
 
+    if (isCancelled) return;
+
     let data;
     try {
       data = ffmpeg.FS('readFile', outputName);
     } catch (readErr) {
+      if (isCancelled) return;
       if (isTargetAudio && !isAudioInput) {
         throw new Error('動画内に音声トラックが見つかりませんでした。');
       } else {
         throw new Error('変換ファイルの生成に失敗しました。');
       }
     }
+
+    if (isCancelled) return;
 
     statusText.textContent = '変換完了！ダウンロードします...';
     progressBar.style.width = '100%';
@@ -503,10 +537,13 @@ convertBtn.addEventListener('click', async () => {
     }
 
   } catch (error) {
+    if (isCancelled) return;
     console.error(error);
     alert(error.message || '変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
     statusText.textContent = 'エラーが発生しました';
   } finally {
-    convertBtn.disabled = false;
+    if (!isCancelled) {
+      convertBtn.disabled = false;
+    }
   }
 });
