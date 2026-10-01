@@ -7,7 +7,7 @@
   <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
 
   <title>動画・音声フォーマット変換ツール | 完全無料・ブラウザ完結型 メディアツール</title>
-  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・指定色・画像背景・透過PNG背景合成）にも対応。完全クライアント処理で安心。">
+  <meta name="description" content="MP4・MOV・WebM・MP3・WAV・M4Aなどの動画・音声をブラウザ上で相互変換。音声の動画化（黒・白・指定色・画像背景・透過PNG対応）にも対応。完全クライアント処理で安心。">
   <link rel="stylesheet" href="../../assets/css/common.css">
   <style>
     .breadcrumb {
@@ -146,6 +146,22 @@
       border-radius: 6px;
       display: none;
     }
+    /* キャンセルボタン用スタイル */
+    .btn-cancel {
+      margin-top: 0.75rem;
+      background-color: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
+    .btn-cancel:hover {
+      background-color: #dc2626;
+    }
   </style>
 </head>
 <body>
@@ -189,7 +205,7 @@
           <select id="target-format">
             <optgroup label="動画フォーマット（音声入力時は動画化）">
               <option value="mp4">MP4（H.264 / 汎用推奨）</option>
-              <option value="webm">WebM（VP9 / Web高圧縮）</option>
+              <option value="webm">WebM（VP8 / Web高圧縮）</option>
               <option value="mov">MOV（QuickTime形式）</option>
               <option value="mkv">MKV（Matroskaコンテナ）</option>
               <option value="avi">AVI（レガシー機器互換）</option>
@@ -271,11 +287,13 @@
         ※音声から動画（MP4等）に変換する場合、自動で1280x720（アスペクト比16:9）の動画が生成されます。透過画像は背後の色と綺麗に合成されます。
       </div>
 
+      <!-- 進捗・処理エリア -->
       <div id="progress-wrapper" class="progress-wrapper">
         <div class="progress-bar-container">
           <div id="progress-bar" class="progress-bar"></div>
         </div>
         <div id="status-text" class="status-text">変換処理中...</div>
+        <button id="cancel-btn" class="btn-cancel" type="button">✖ 変換を中止する</button>
       </div>
     </div>
   </main>
