@@ -11,6 +11,7 @@ const inputInfoBadge = document.getElementById('input-info-badge');
 const splitPresetSelect = document.getElementById('split-preset');
 const customSecondsGroup = document.getElementById('custom-seconds-group');
 const customSecondsInput = document.getElementById('custom-seconds-input');
+const cutModeSelect = document.getElementById('cut-mode');
 const targetFormatSelect = document.getElementById('target-format');
 const splitSummaryText = document.getElementById('split-summary-text');
 const splitPartsList = document.getElementById('split-parts-list');
@@ -165,11 +166,15 @@ convertBtn.addEventListener('click', async () => {
 
   const segmentSec = getTargetSegmentSeconds();
   const totalParts = Math.ceil(videoDuration / segmentSec);
+  const cutMode = cutModeSelect.value; // 'precise' または 'fast'
   const targetFormatMode = targetFormatSelect.value;
   const inExt = (currentFile.name.substring(currentFile.name.lastIndexOf('.') + 1) || 'mp4').toLowerCase();
 
-  // 出力拡張子（copy の場合は元ファイルと同じ）
-  const outExt = targetFormatMode === 'copy' ? inExt : targetFormatMode;
+  // 出力拡張子の決定
+  let outExt = inExt;
+  if (targetFormatMode !== 'copy') {
+    outExt = targetFormatMode;
+  }
 
   isCancelled = false;
   convertBtn.disabled = true;
@@ -201,8 +206,8 @@ convertBtn.addEventListener('click', async () => {
 
       let ffmpegArgs = [];
 
-      // 高速シークのために -ss を -i の前に配置
-      if (targetFormatMode === 'copy') {
+      // 超高速モード（-c copy）: キーフレーム単位で切るため数秒ズレる可能性あり
+      if (cutMode === 'fast' && targetFormatMode === 'copy') {
         ffmpegArgs = [
           '-ss', String(startSec),
           '-i', inputName,
@@ -211,10 +216,12 @@ convertBtn.addEventListener('click', async () => {
           '-avoid_negative_ts', 'make_zero',
           outputName
         ];
-      } else {
-        // 再エンコード
-        const vCodec = targetFormatMode === 'webm' ? 'libvpx' : 'libx264';
-        const aCodec = targetFormatMode === 'webm' ? 'libvorbis' : 'aac';
+      } 
+      // 高精度モード（再エンコード）: フレーム単位で完全に正確な秒数で切り出す
+      else {
+        const isWebm = (outExt === 'webm');
+        const vCodec = isWebm ? 'libvpx' : 'libx264';
+        const aCodec = isWebm ? 'libvorbis' : 'aac';
 
         ffmpegArgs = [
           '-ss', String(startSec),
@@ -222,6 +229,7 @@ convertBtn.addEventListener('click', async () => {
           '-t', String(durationSec),
           '-c:v', vCodec,
           '-preset', 'ultrafast',
+          '-crf', '23',
           '-c:a', aCodec,
           '-b:a', '128k',
           outputName
@@ -235,11 +243,9 @@ convertBtn.addEventListener('click', async () => {
       const data = ffmpeg.FS('readFile', outputName);
       generatedFiles.push({ name: outputName, data: data });
 
-      // パート単位で進捗バーを更新
       const overallPercent = ((i + 1) / totalParts) * 100;
       updateProgress(overallPercent);
 
-      // メモリ節約のため仮想FSから削除
       ffmpeg.FS('unlink', outputName);
     }
 
@@ -249,14 +255,11 @@ convertBtn.addEventListener('click', async () => {
 
     const baseName = currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'video';
 
-    // 1本だけの場合は直接動画ファイルをダウンロード
     if (generatedFiles.length === 1) {
       const mimeType = outExt === 'webm' ? 'video/webm' : (outExt === 'mov' ? 'video/quicktime' : 'video/mp4');
       const blob = new Blob([generatedFiles[0].data.buffer], { type: mimeType });
       CommonUtils.downloadBlob(blob, `${baseName}_part1.${outExt}`);
-    } 
-    // 複数本の場合は ZIP にまとめて一括ダウンロード
-    else if (generatedFiles.length > 1) {
+    } else if (generatedFiles.length > 1) {
       statusText.textContent = 'ZIPファイルを生成中...';
       const zip = new JSZip();
       generatedFiles.forEach((file, idx) => {
@@ -273,7 +276,6 @@ convertBtn.addEventListener('click', async () => {
     statusText.textContent = '分割完了！ダウンロードしました。';
     progressBar.style.width = '100%';
 
-    // 入力ファイルクリーンアップ
     ffmpeg.FS('unlink', inputName);
 
   } catch (error) {
