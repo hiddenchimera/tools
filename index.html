@@ -90,8 +90,8 @@
       };
 
       try {
-        const response = await fetch('./tools.json');
-        if (!response.ok) throw new Error('tools.json の取得に失敗しました');
+        const response = await fetch('./items.json');
+        if (!response.ok) throw new Error('items.json の取得に失敗しました');
         
         const tools = await response.json();
 
