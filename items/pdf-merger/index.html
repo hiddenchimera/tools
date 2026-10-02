@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R3DRCDH9Z3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R3DRCDH9Z3');
+    gtag('config', 'G-FW7R85YTVX');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【無料・安全】PDF結合・ページ抽出・分割ツール | サーバー送信なし - Tools</title>
+  <meta name="description" content="複数のPDFファイルをブラウザ内で安全かつ高速に結合・ページ抽出。PDFデータを外部サーバーへ一切送信しない完全ローカル処理のため、契約書や見積書、個人情報を含む重要書類も安心して編集できます。">
+  <meta name="keywords" content="PDF結合,PDF分割,PDFページ抽出,PDF結合 無料,安全,サーバー送信なし,機密保持,ブラウザ完結">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="【無料・安全】PDF結合・ページ抽出・分割ツール | サーバー送信なし">
+  <meta property="og:description" content="端末内だけで複数のPDFを瞬時に結合・ページ並べ替え。サーバー送信ゼロで契約書や機密書類も安心です。">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <!-- pdf-lib (完全ブラウザ動作型PDFライブラリ) -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <!-- 構造化データ（FAQPage / SoftwareApplication） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "PDF結合・ページ抽出・分割ツール",
+        "url": "https://tools.hiddenchimera.com/items/pdf-merger/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "JPY"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "PDFデータが外部サーバーにアップロードされることはありますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "いいえ、一切ありません。本ツールはお使いのブラウザ上で動作するJavaScript（pdf-lib）のみを使用し、端末のメモリ上で直接バイナリを結合・編集します。サーバーへのアップロード通信そのものが存在しないため、社外秘や契約書も安全に取り扱えます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "PDFの結合順序を入れ替えることはできますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "はい、可能です。ファイルを読み込んだ後、各PDFファイルカードに表示される「↑」「↓」ボタンを押すことで、自由に結合順序を変更できます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "特定ページだけを取り出して結合することはできますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "はい。ファイルごとに対象ページ番号（例: 1, 3-5, 8）を指定できるため、不要なページを除外した上で必要なページのみを1つのPDFにまとめることができます。"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .control-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .file-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+    .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    .file-name {
+      font-weight: 600;
+      color: var(--text-color);
+      word-break: break-all;
+    }
+    .file-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .file-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .file-range input {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      width: 140px;
+      font-size: 0.8rem;
+    }
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.3rem 0.55rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .btn-icon.danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-color: #ef4444;
+    }
+    .output-settings {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    .output-settings label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .output-settings input {
+      width: 100%;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.55rem;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .action-row button {
+      flex: 1;
+      min-width: 180px;
+    }
+    .progress-bar-container {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .status-text {
+      font-size: 0.875rem;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 2.5rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+
+    /* SEO解説コンテンツ領域 */
+    .seo-article {
+      margin-top: 2.5rem;
+      line-height: 1.8;
+      color: var(--text-color);
+    }
+    .seo-article h3 {
+      font-size: 1.35rem;
+      margin-top: 2rem;
+      margin-bottom: 0.85rem;
+      color: var(--text-color);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+    }
+    .seo-article p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .seo-article ul, .seo-article ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .seo-article li {
+      margin-bottom: 0.4rem;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+    .comparison-table th, .comparison-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: center;
+    }
+    .comparison-table th {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 600;
+    }
+    .check-yes {
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .check-no {
+      color: #f87171;
+    }
+    .faq-block {
+      margin-top: 1.5rem;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1.25rem;
+    }
+    .faq-q {
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .faq-a {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; PDF結合・ページ抽出ツール
+    </div>
+
+    <h1>PDF結合・ページ抽出・分割ツール</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      複数のPDFファイルをブラウザ内で瞬時に1本に結合・ページ抽出。<br>
+      ファイルはサーバーに一切アップロードされないため、契約書や見積書、個人情報などの機密文書も安全に取り扱えます。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">📑</div>
+      <h3>結合するPDFファイルをドラッグ＆ドロップ（複数可）</h3>
+      <p>またはクリックしてファイルを選択（.pdf）</p>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div id="control-panel" class="control-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.9rem; font-weight: 600;">結合リスト（順序・抽出ページの編集）</span>
+        <button id="add-more-btn" class="btn-icon" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">＋ PDFを追加</button>
+      </div>
+
+      <!-- ファイル一覧 -->
+      <div id="file-list" class="file-list"></div>
+
+      <!-- 出力ファイル名設定 -->
+      <div class="output-settings">
+        <div>
+          <label for="output-filename">保存ファイル名</label>
+          <input type="text" id="output-filename" value="merged_document.pdf" placeholder="例: merged_document.pdf">
+        </div>
+      </div>
+
+      <!-- ボタン群 -->
+      <div class="action-row">
+        <button id="merge-btn" class="btn" style="background: var(--primary-color);">📑 PDFを結合してダウンロード</button>
+        <button id="clear-btn" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid #ef4444; max-width: 160px;">すべて消去</button>
+      </div>
+
+      <!-- 処理中ステータス -->
+      <div id="progress-wrapper" class="progress-bar-container">
+        <div id="status-text" class="status-text">PDFを結合処理中...</div>
+      </div>
+    </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応仕様・セキュリティ仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>PDF操作・結合仕様</h4>
+          <ul>
+            <li><strong>ライブラリ:</strong> <code>pdf-lib</code>（純粋なWebAssembly / JavaScriptクライアントバイナリ処理）。</li>
+            <li><strong>ページ指定:</strong> カンマ区切りおよびハイフンによる範囲指定に対応（例: <code>1-3, 5, 8</code>）。空白時は全ページを対象とします。</li>
+            <li><strong>フォント・リンク保持:</strong> 既存PDFに埋め込まれたベクターグラフィックス、アウトラインフォント、内部ハイパーリンク構造を破壊することなく安全に結合。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>セキュリティ・機密保持</h4>
+          <ul>
+            <li><strong>完全ゼロ送信:</strong> アップロード先サーバーは存在せず、ブラウザのRAM領域（メモリ）でのみ展開・結合されます。ブラウザタブを閉じた時点でデータは完全消滅します。</li>
+            <li><strong>社内セキュリティ準拠:</strong> クラウドサービスへの文書送信が禁止されている企業のセキュリティポリシーにも完全適合。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <!-- SEO解説コンテンツ（検索意図充足・被リンク獲得用） -->
+    <article class="seo-article">
+      <h3>なぜビジネスで「サーバー送信なし」のPDF結合ツールが必要なのか？</h3>
+      <p>
+        PDF形式は、契約書、請求書、見積書、身分証のコピー、社内議事録など、<strong>最も機密性の高い文書の保管・やり取り</strong>に利用されます。<br>
+        しかし、インターネット上で検索して見つかる一般的な無料PDF結合ツールの多くは、ファイルを外部のクラウドサーバーへ一度アップロードして結合しています。<br>
+        これは、悪意の有無に関わらず<strong>「通信傍受・サーバー側ログの残存・不正アクセスによるデータ流出」などのリスク</strong>を常に孕んでいます。
+      </p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>比較項目</th>
+            <th>一般的なオンラインPDFサービス</th>
+            <th>当ツール（完全ブラウザ完結）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PDFデータの送信先</td>
+            <td>クラウドサーバー（海外含む）</td>
+            <td class="check-yes">送信ゼロ（端末のメモリ内のみ）</td>
+          </tr>
+          <tr>
+            <td>機密漏洩・保存リスク</td>
+            <td>サーバーログやキャッシュに残る懸念</td>
+            <td class="check-yes">ゼロ（タブを閉じれば即時完全消滅）</td>
+          </tr>
+          <tr>
+            <td>アップロード待ち時間</td>
+            <td>回線速度に依存（大容量だと遅い）</td>
+            <td class="check-yes">瞬時（ローカル処理のため待ち時間極小）</td>
+          </tr>
+          <tr>
+            <td>社内規定・コンプライアンス</td>
+            <td>「外部アップロード禁止」に抵触</td>
+            <td class="check-yes">通信しないため社内規定を完全クリア</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>特定ページの抽出・除外を組み合わせた高度なPDF結合</h3>
+      <p>
+        当ツールでは、単にPDFファイルを丸ごと順番に結合するだけでなく、ファイルごとに<strong>「1-3, 5」</strong>のように抽出したいページ番号を柔軟に指定できます。<br>
+        「表紙と結論ページだけを抜き出してまとめたい」「不要な添付資料のページだけを除外して1つのPDFにしたい」といった実務で頻発する作業も、別のツールを挟むことなくこの1画面で完結します。
+      </p>
+
+      <h3>よくある質問（FAQ）</h3>
+      <div class="faq-block">
+        <div class="faq-item">
+          <div class="faq-q">❓ 会社の機密書類を結合しても安全ですか？</div>
+          <p class="faq-a">はい、完全に安全です。データはお使いのパソコン内のメモリ領域でのみ処理され、外部への通信は一切行われません。ネットワークを切断したオフライン状態でも動作します。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ パスワード保護されたPDFは結合できますか？</div>
+          <p class="faq-a">パスワード暗号化されたPDFはブラウザ内で直接復号できないため、あらかじめパスワードを解除した状態でファイルを読み込んでください。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ ファイルサイズやページ数に上限はありますか？</div>
+          <p class="faq-a">サイト側による制限はありません。数十ページ〜数百ページのPDFも処理可能です。お使いの端末の空きメモリ量に応じて快適に動作します。</p>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
