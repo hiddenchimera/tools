@@ -7,6 +7,10 @@ let isImageTransparent = false;
 let inputDuration = 0;
 let isCancelled = false;
 
+// メモリ解放用URLポインタ
+let currentMediaUrl = null;
+let currentBgImageUrl = null;
+
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
 const videoPreview = document.getElementById('video-preview');
@@ -55,22 +59,30 @@ CommonUtils.initDropzone(dropzone, (file) => {
     return;
   }
 
+  // 以前のメディアURLを破棄
+  if (currentMediaUrl) {
+    URL.revokeObjectURL(currentMediaUrl);
+    currentMediaUrl = null;
+    videoPreview.removeAttribute('src');
+    audioPreview.removeAttribute('src');
+  }
+
   currentFile = file;
   isAudioInput = isAudio && !file.type.startsWith('video/');
 
-  const fileUrl = URL.createObjectURL(file);
+  currentMediaUrl = URL.createObjectURL(file);
   inputDuration = 0;
 
   // プレビューの切り替え ＆ 長さ（duration）の取得
   if (isAudioInput) {
     videoPreview.style.display = 'none';
     audioPreview.style.display = 'block';
-    audioPreview.src = fileUrl;
+    audioPreview.src = currentMediaUrl;
     audioPreview.onloadedmetadata = () => {
       inputDuration = audioPreview.duration;
     };
     inputInfoBadge.textContent = `🎵 音声ファイルを検出: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
-    
+
     if (['mp3', 'wav', 'aac'].includes(ext)) {
       targetFormatSelect.value = (ext === 'mp3') ? 'wav' : 'mp3';
     } else {
@@ -79,7 +91,7 @@ CommonUtils.initDropzone(dropzone, (file) => {
   } else {
     audioPreview.style.display = 'none';
     videoPreview.style.display = 'block';
-    videoPreview.src = fileUrl;
+    videoPreview.src = currentMediaUrl;
     videoPreview.onloadedmetadata = () => {
       inputDuration = videoPreview.duration;
     };
@@ -142,8 +154,16 @@ async function handleBgImageFile(file) {
     alert('画像ファイル（PNG, JPG, WebP等）を選択してください。');
     return;
   }
+
+  // 以前の背景画像URLを破棄
+  if (currentBgImageUrl) {
+    URL.revokeObjectURL(currentBgImageUrl);
+    currentBgImageUrl = null;
+  }
+
   currentBgImageFile = file;
-  bgImagePreview.src = URL.createObjectURL(file);
+  currentBgImageUrl = URL.createObjectURL(file);
+  bgImagePreview.src = currentBgImageUrl;
   bgImagePreview.style.display = 'inline-block';
   bgImageLabel.textContent = `選択中: ${file.name} (${CommonUtils.formatBytes(file.size)})`;
 
@@ -192,7 +212,10 @@ function checkIfImageHasTransparency(file) {
         resolve(false);
       }
     };
-    img.onerror = () => resolve(false);
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(false);
+    };
     img.src = url;
   });
 }
@@ -240,7 +263,7 @@ function parseTimeToSeconds(timeStr) {
 function updateProgress(percent) {
   if (isCancelled) return;
   const clamped = Math.min(99, Math.max(0, Math.round(percent)));
-  
+
   const x = clamped / 100;
   const curvedPercent = (1 - Math.pow(1 - x, 2)) * 100;
 
@@ -304,11 +327,10 @@ convertBtn.addEventListener('click', async () => {
 
   isCancelled = false;
   convertBtn.disabled = true;
-  
-  // 処理開始時はキャンセルボタンを有効化して表示
+
   cancelBtn.disabled = false;
   cancelBtn.style.display = 'block';
-  
+
   progressWrapper.style.display = 'block';
   progressBar.style.width = '0%';
   statusText.textContent = '準備中...';
@@ -355,9 +377,7 @@ convertBtn.addEventListener('click', async () => {
     const preset = qualityPresetSelect.value;
     let ffmpegArgs = [];
 
-    // ==========================================
-    // パターン1: 音声ファイル ➔ 動画化（背景を合成）
-    // ==========================================
+    // パターン1: 音声 ➔ 動画
     if (isAudioInput && isTargetVideo) {
       const bgType = bgTypeSelect.value;
       const isWebm = (targetFormat === 'webm');
@@ -421,10 +441,8 @@ convertBtn.addEventListener('click', async () => {
           outputName
         );
       }
-    } 
-    // ==========================================
+    }
     // パターン2: 音声のみ出力
-    // ==========================================
     else if (isTargetAudio) {
       ffmpegArgs.push('-i', inputName, '-vn');
 
@@ -437,10 +455,8 @@ convertBtn.addEventListener('click', async () => {
         const bitrates = { fast: '128k', high: '256k', small: '96k' };
         ffmpegArgs.push('-c:a', 'aac', '-b:a', bitrates[preset] || '128k', outputName);
       }
-    } 
-    // ==========================================
-    // パターン3: 通常の動画 ➔ 動画変換 / GIF変換
-    // ==========================================
+    }
+    // パターン3: 動画 ➔ 動画 / GIF
     else {
       ffmpegArgs.push('-i', inputName);
 
@@ -520,7 +536,6 @@ convertBtn.addEventListener('click', async () => {
 
     if (isCancelled) return;
 
-    // 変換完了：中止ボタンを非表示にし、無効化
     cancelBtn.style.display = 'none';
     cancelBtn.disabled = true;
 
@@ -554,7 +569,6 @@ convertBtn.addEventListener('click', async () => {
     console.error(error);
     alert(error.message || '変換処理中にエラーが発生しました。コンソールのログをご確認ください。');
     statusText.textContent = 'エラーが発生しました';
-    // エラー時も中止ボタンは非表示
     cancelBtn.style.display = 'none';
     cancelBtn.disabled = true;
   } finally {
