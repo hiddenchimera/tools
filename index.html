@@ -15,64 +15,60 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>完全無料・ブラウザ完結型 メディアツール | Tools</title>
-  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型のメディアツール集。サーバー送信なしで安全にGIF変換、音声抽出、画像圧縮、PDF結合、文字数カウントが可能です。">
-  
-  <!-- OGP / SEO設定 -->
-  <meta property="og:title" content="完全無料・ブラウザ完結型 メディアツール">
-  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声・画像・テキストのWebツール群。">
-  <meta property="og:type" content="website">
+  <meta name="description" content="画像圧縮、PDF結合、動画変換、文字数カウントなど、すべての処理がお使いのブラウザ内（ローカル）で完結するWebツール集。サーバー送信ゼロで機密・プライバシーも万全です。">
+  <meta name="keywords" content="画像圧縮,PDF結合,動画GIF変換,動画トリミング,文字数カウント,安全,サーバー送信なし,無料">
 
-  <link rel="stylesheet" href="./assets/css/common.css">
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="完全無料・ブラウザ完結型 メディアツール | Tools">
+  <meta property="og:description" content="画像圧縮、PDF結合、動画変換、文字数カウントなど、すべての処理がお使いのブラウザ内（ローカル）で完結する安全なメディアツール集。">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="/assets/css/common.css">
+
+  <style>
+    .loading-notice {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+  </style>
 </head>
 <body>
 
   <header>
     <div class="logo">
-      <a href="./">完全無料・ブラウザ完結型 メディアツール</a>
+      <a href="/">完全無料・ブラウザ完結型 メディアツール</a>
     </div>
   </header>
 
   <main>
     <section class="hero">
-      <h1>完全無料・ブラウザ完結型 Webツール集</h1>
-      <p>会員登録・サーバー送信なし。すべての処理がお使いの端末内で安全・高速に完結します。</p>
+      <h1>ブラウザ完結型 メディアツール</h1>
+      <p>すべての処理はお使いの端末（ブラウザ）内部で行われます。サーバーへのデータ送信は一切ありません。</p>
     </section>
 
-    <!-- カテゴリ1: 動画・音声の編集・変換ツール -->
-    <section class="category-section">
-      <h2 class="category-title">1. 動画・音声の編集・変換ツール</h2>
-      <p class="category-desc">動画のGIF化、トリミング、音声抽出、フォーマット相互変換を行います。</p>
-      <div id="video-tool-container" class="tool-grid"></div>
-    </section>
+    <!-- ツール一覧コンテナ（items.json から動的レンダリング） -->
+    <div id="tools-container">
+      <div class="loading-notice">ツール一覧を読み込み中...</div>
+    </div>
 
-    <!-- カテゴリ2: 画像・文書・PDFの変換・最適化ツール -->
-    <section class="category-section">
-      <h2 class="category-title">2. 画像・文書・PDFの変換・最適化ツール</h2>
-      <p class="category-desc">サーバー送信ゼロで機密ファイルも安心。ブラウザ内で高速に一括圧縮・結合・編集します。</p>
-      <div id="image-tool-container" class="tool-grid"></div>
-    </section>
-
-    <!-- カテゴリ3: テキスト・文章の校正・集計ツール -->
-    <section class="category-section">
-      <h2 class="category-title">3. テキスト・文章の校正・集計ツール</h2>
-      <p class="category-desc">就活ES、レポート、ブログ原稿のリアルタイム文字数把握や原稿用紙換算、推敲に。</p>
-      <div id="text-tool-container" class="tool-grid"></div>
-    </section>
+    <noscript>
+      <div style="padding: 1.5rem; background: var(--card-bg); border-radius: var(--radius); text-align: center; margin-top: 1rem;">
+        <p>当ツールの利用にはJavaScriptの有効化が必要です。</p>
+      </div>
+    </noscript>
   </main>
 
   <footer>
     <p>&copy; Hidden Chimera All Rights Reserved.</p>
   </footer>
 
-  <!-- 共通スクリプト（ハンバーガーメニュー・サイドバー自動生成） -->
-  <script src="./assets/js/common.js"></script>
-
-  <!-- トップページカード描画スクリプト -->
+  <script src="/assets/js/common.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const videoContainer = document.getElementById('video-tool-container');
-      const imageContainer = document.getElementById('image-tool-container');
-      const textContainer = document.getElementById('text-tool-container');
+      const container = document.getElementById('tools-container');
 
       const iconMap = {
         film: '🎬',
@@ -87,49 +83,86 @@
         default: '🔧'
       };
 
-      const renderCard = (tool) => {
-        const icon = iconMap[tool.icon] || iconMap.default;
-        const tagsHtml = (tool.tags || [])
-          .map(tag => `<span class="tool-tag">${tag}</span>`)
-          .join('');
-
-        return `
-          <a href="${tool.path}" class="tool-card">
-            <div class="tool-card-icon">${icon}</div>
-            <div class="tool-card-title">${tool.name}</div>
-            <p class="tool-card-desc">${tool.description}</p>
-            <div class="tool-card-tags">${tagsHtml}</div>
-          </a>
-        `;
+      const categoryDefinitions = {
+        'video-audio': {
+          title: '動画・音声ツール',
+          description: '動画の切り取り、GIF変換、音声抽出、フォーマット変換などをブラウザ内で高速処理'
+        },
+        'image': {
+          title: '画像・PDFツール',
+          description: '複数画像の一括圧縮、PDF結合、正方形化、プライバシー保護のモザイク加工'
+        },
+        'text': {
+          title: 'テキストツール',
+          description: '文字数カウント、400字詰原稿用紙換算、読了時間、リアルタイム推敲チェック'
+        }
       };
 
       try {
-        const response = await fetch('./items.json');
-        if (!response.ok) throw new Error('items.json の取得に失敗しました');
-        
-        const tools = await response.json();
+        const res = await fetch('/items.json');
+        if (!res.ok) throw new Error('items.json fetch error');
+        const tools = await res.json();
 
-        let videoHtml = '';
-        let imageHtml = '';
-        let textHtml = '';
+        // カテゴリごとに仕分け
+        const categorized = {
+          'video-audio': [],
+          'image': [],
+          'text': []
+        };
 
         tools.forEach(tool => {
-          if (tool.category === 'video-audio') {
-            videoHtml += renderCard(tool);
-          } else if (tool.category === 'image') {
-            imageHtml += renderCard(tool);
-          } else if (tool.category === 'text') {
-            textHtml += renderCard(tool);
+          if (categorized[tool.category]) {
+            categorized[tool.category].push(tool);
           }
         });
 
-        videoContainer.innerHTML = videoHtml || '<p style="color: var(--text-muted);">ツールがありません。</p>';
-        imageContainer.innerHTML = imageHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
-        textContainer.innerHTML = textHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
+        let html = '';
 
-      } catch (error) {
-        console.error(error);
-        videoContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
+        for (const [catKey, catInfo] of Object.entries(categoryDefinitions)) {
+          const items = categorized[catKey];
+          if (!items || items.length === 0) continue;
+
+          html += `
+            <section class="category-section">
+              <h2 class="category-title">${catInfo.title}</h2>
+              <div class="category-desc">${catInfo.description}</div>
+              <div class="tool-grid">
+          `;
+
+          items.forEach(tool => {
+            const icon = iconMap[tool.icon] || iconMap.default;
+            const targetUrl = `/items/${tool.id}/`;
+            const tagsHtml = (tool.tags || [])
+              .map(tag => `<span class="tool-tag">${tag}</span>`)
+              .join('');
+
+            html += `
+              <a href="${targetUrl}" class="tool-card">
+                <div class="tool-card-icon">${icon}</div>
+                <div class="tool-card-title">${tool.name}</div>
+                <div class="tool-card-desc">${tool.description}</div>
+                <div class="tool-card-tags">
+                  ${tagsHtml}
+                </div>
+              </a>
+            `;
+          });
+
+          html += `
+              </div>
+            </section>
+          `;
+        }
+
+        container.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `
+          <div class="loading-notice" style="color: #f87171;">
+            ツールの読み込みに失敗しました。ページを再読み込みしてください。
+          </div>
+        `;
       }
     });
   </script>
