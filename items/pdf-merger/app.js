@@ -1,12 +1,13 @@
 const { PDFDocument } = PDFLib;
 
-let pdfItems = []; // { file, arrayBuffer, pageCount, rangeText }
+let fileItems = []; // { id, type: 'pdf' | 'image', file, buffer, pageCount, rangeText, thumbUrl, width, height }
 
 const dropzone = document.getElementById('dropzone');
 const controlPanel = document.getElementById('control-panel');
 const fileList = document.getElementById('file-list');
 const addMoreBtn = document.getElementById('add-more-btn');
 const outputFilenameInput = document.getElementById('output-filename');
+const imageLayoutModeSelect = document.getElementById('image-layout-mode');
 const mergeBtn = document.getElementById('merge-btn');
 const clearBtn = document.getElementById('clear-btn');
 const progressWrapper = document.getElementById('progress-wrapper');
@@ -15,18 +16,17 @@ const statusText = document.getElementById('status-text');
 // 隠しファイル入力
 const hiddenFileInput = document.createElement('input');
 hiddenFileInput.type = 'file';
-hiddenFileInput.accept = 'application/pdf';
+hiddenFileInput.accept = '.pdf, image/*';
 hiddenFileInput.multiple = true;
 hiddenFileInput.style.display = 'none';
 document.body.appendChild(hiddenFileInput);
 
-// ドロップゾーン初期化
+// ドロップゾーン初期化（PDFおよび画像）
 CommonUtils.initDropzone(dropzone, async (files) => {
   const fileArray = Array.isArray(files) ? files : [files];
   await handleIncomingFiles(fileArray);
-}, 'application/pdf');
+}, '.pdf,image/*');
 
-// 「＋ PDFを追加」ボタン
 addMoreBtn.addEventListener('click', () => {
   hiddenFileInput.click();
 });
@@ -38,62 +38,127 @@ hiddenFileInput.addEventListener('change', async (e) => {
   }
 });
 
-// ファイル読み込み処理
+// ファイル受付・解析
 async function handleIncomingFiles(files) {
-  const validPdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf') || f.type === 'application/pdf');
+  for (const file of files) {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|avif|gif|bmp|svg|ico)$/i.test(file.name);
 
-  if (validPdfs.length === 0) {
-    alert('PDFファイル（.pdf）を選択してください。');
-    return;
-  }
+    if (isPdf) {
+      try {
+        const buffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+        const pageCount = pdfDoc.getPageCount();
 
-  for (const file of validPdfs) {
-    try {
-      const buffer = await file.arrayBuffer();
-      // ページ数確認のためにロード
-      const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-      const pageCount = pdfDoc.getPageCount();
-
-      pdfItems.push({
-        file: file,
-        arrayBuffer: buffer,
-        pageCount: pageCount,
-        rangeText: `1-${pageCount}`
-      });
-    } catch (err) {
-      console.error(err);
-      alert(`「${file.name}」の読み込みに失敗しました。パスワード保護されているか破損している可能性があります。`);
+        fileItems.push({
+          id: Math.random().toString(36).substring(2),
+          type: 'pdf',
+          file: file,
+          buffer: buffer,
+          pageCount: pageCount,
+          rangeText: `1-${pageCount}`,
+          thumbUrl: null
+        });
+      } catch (err) {
+        console.error(err);
+        alert(`「${file.name}」の読み込みに失敗しました。パスワード保護されている可能性があります。`);
+      }
+    } else if (isImage) {
+      try {
+        const { blob, width, height, thumbUrl } = await loadImageMeta(file);
+        fileItems.push({
+          id: Math.random().toString(36).substring(2),
+          type: 'image',
+          file: file,
+          buffer: await blob.arrayBuffer(),
+          pageCount: 1,
+          rangeText: '1',
+          thumbUrl: thumbUrl,
+          width: width,
+          height: height
+        });
+      } catch (err) {
+        console.error(err);
+        alert(`画像「${file.name}」の読み込みに失敗しました。`);
+      }
     }
   }
 
-  if (pdfItems.length > 0) {
+  if (fileItems.length > 0) {
     controlPanel.style.display = 'block';
     renderFileList();
   }
 }
 
-// ファイル一覧UIの描画
+// 画像のメタ情報読み込み・PNG化Blob生成
+function loadImageMeta(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob((blob) => {
+        resolve({
+          blob: blob,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          thumbUrl: objectUrl
+        });
+      }, 'image/png');
+    };
+
+    img.onerror = (err) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(err);
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+// ファイル一覧UI描画
 function renderFileList() {
   fileList.innerHTML = '';
 
-  pdfItems.forEach((item, index) => {
+  fileItems.forEach((item, index) => {
     const row = document.createElement('div');
     row.className = 'file-item';
 
+    const thumbHtml = item.type === 'pdf' 
+      ? '<div class="file-thumb">📄</div>' 
+      : `<div class="file-thumb"><img src="${item.thumbUrl}" alt="thumb"></div>`;
+
+    const metaText = item.type === 'pdf'
+      ? `PDF (全 ${item.pageCount} ページ)・${CommonUtils.formatBytes(item.file.size)}`
+      : `画像 (${item.width} × ${item.height} px)・${CommonUtils.formatBytes(item.file.size)}`;
+
+    const rangeHtml = item.type === 'pdf'
+      ? `<div class="file-range">
+           <span>対象ページ:</span>
+           <input type="text" class="range-input" data-index="${index}" value="${item.rangeText}" placeholder="例: 1-3, 5">
+         </div>`
+      : `<div class="file-range" style="color: var(--text-muted); font-size: 0.8rem;">1ページとして追加</div>`;
+
     row.innerHTML = `
       <div class="file-info">
-        <div class="file-name">${index + 1}. ${item.file.name}</div>
-        <div class="file-meta">全 ${item.pageCount} ページ (${CommonUtils.formatBytes(item.file.size)})</div>
+        ${thumbHtml}
+        <div class="file-text">
+          <div class="file-name">${index + 1}. ${item.file.name}</div>
+          <div class="file-meta">${metaText}</div>
+        </div>
       </div>
 
-      <div class="file-range">
-        <span>対象ページ:</span>
-        <input type="text" class="range-input" data-index="${index}" value="${item.rangeText}" placeholder="例: 1-3, 5">
-      </div>
+      ${rangeHtml}
 
       <div class="file-actions">
         <button class="btn-icon btn-up" data-index="${index}" title="上へ移動" ${index === 0 ? 'disabled' : ''}>↑</button>
-        <button class="btn-icon btn-down" data-index="${index}" title="下へ移動" ${index === pdfItems.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="btn-icon btn-down" data-index="${index}" title="下へ移動" ${index === fileItems.length - 1 ? 'disabled' : ''}>↓</button>
         <button class="btn-icon danger btn-delete" data-index="${index}" title="削除">✕</button>
       </div>
     `;
@@ -101,12 +166,12 @@ function renderFileList() {
     fileList.appendChild(row);
   });
 
-  // イベントバインド
+  // イベントリスナー
   document.querySelectorAll('.range-input').forEach(input => {
     input.addEventListener('change', (e) => {
       const idx = parseInt(e.target.dataset.index, 10);
-      if (pdfItems[idx]) {
-        pdfItems[idx].rangeText = e.target.value.trim();
+      if (fileItems[idx]) {
+        fileItems[idx].rangeText = e.target.value.trim();
       }
     });
   });
@@ -115,9 +180,9 @@ function renderFileList() {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.currentTarget.dataset.index, 10);
       if (idx > 0) {
-        const temp = pdfItems[idx];
-        pdfItems[idx] = pdfItems[idx - 1];
-        pdfItems[idx - 1] = temp;
+        const temp = fileItems[idx];
+        fileItems[idx] = fileItems[idx - 1];
+        fileItems[idx - 1] = temp;
         renderFileList();
       }
     });
@@ -126,10 +191,10 @@ function renderFileList() {
   document.querySelectorAll('.btn-down').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.currentTarget.dataset.index, 10);
-      if (idx < pdfItems.length - 1) {
-        const temp = pdfItems[idx];
-        pdfItems[idx] = pdfItems[idx + 1];
-        pdfItems[idx + 1] = temp;
+      if (idx < fileItems.length - 1) {
+        const temp = fileItems[idx];
+        fileItems[idx] = fileItems[idx + 1];
+        fileItems[idx + 1] = temp;
         renderFileList();
       }
     });
@@ -138,8 +203,8 @@ function renderFileList() {
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.currentTarget.dataset.index, 10);
-      pdfItems.splice(idx, 1);
-      if (pdfItems.length === 0) {
+      fileItems.splice(idx, 1);
+      if (fileItems.length === 0) {
         controlPanel.style.display = 'none';
       } else {
         renderFileList();
@@ -148,10 +213,9 @@ function renderFileList() {
   });
 }
 
-// ページ範囲テキストの解析関数 (例: "1-3, 5, 8" -> [0, 1, 2, 4, 7])
+// ページ範囲パーサー
 function parsePageRange(rangeStr, maxPages) {
   if (!rangeStr || rangeStr.trim() === '') {
-    // 空なら全ページ
     return Array.from({ length: maxPages }, (_, i) => i);
   }
 
@@ -185,27 +249,72 @@ function parsePageRange(rangeStr, maxPages) {
   return Array.from(indices).sort((a, b) => a - b);
 }
 
-// PDF結合処理の実行
+// PDF生成・結合
 mergeBtn.addEventListener('click', async () => {
-  if (pdfItems.length === 0) return;
+  if (fileItems.length === 0) return;
 
   mergeBtn.disabled = true;
   progressWrapper.style.display = 'block';
   statusText.textContent = '新規PDFを作成中...';
 
+  const layoutMode = imageLayoutModeSelect.value;
+  // A4 ポイントサイズ (72 dpi): 595.28 x 841.89
+  const A4_WIDTH = 595.28;
+  const A4_HEIGHT = 841.89;
+
   try {
     const mergedPdf = await PDFDocument.create();
 
-    for (let i = 0; i < pdfItems.length; i++) {
-      const item = pdfItems[i];
-      statusText.textContent = `PDFを処理中 (${i + 1}/${pdfItems.length}): ${item.file.name}...`;
+    for (let i = 0; i < fileItems.length; i++) {
+      const item = fileItems[i];
+      statusText.textContent = `ファイルを処理中 (${i + 1}/${fileItems.length}): ${item.file.name}...`;
 
-      const srcPdf = await PDFDocument.load(item.arrayBuffer);
-      const pageIndices = parsePageRange(item.rangeText, item.pageCount);
+      if (item.type === 'pdf') {
+        const srcPdf = await PDFDocument.load(item.buffer);
+        const pageIndices = parsePageRange(item.rangeText, item.pageCount);
 
-      if (pageIndices.length > 0) {
-        const copiedPages = await mergedPdf.copyPages(srcPdf, pageIndices);
-        copiedPages.forEach(page => mergedPdf.addPage(page));
+        if (pageIndices.length > 0) {
+          const copiedPages = await mergedPdf.copyPages(srcPdf, pageIndices);
+          copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
+      } else if (item.type === 'image') {
+        // 画像埋め込み（PNGバイトデータ）
+        const embeddedImg = await mergedPdf.embedPng(item.buffer);
+
+        if (layoutMode === 'original-size') {
+          // 画像サイズそのままのページ
+          const page = mergedPdf.addPage([item.width, item.height]);
+          page.drawImage(embeddedImg, {
+            x: 0,
+            y: 0,
+            width: item.width,
+            height: item.height
+          });
+        } else {
+          // A4フィット（向き判定）
+          const isLandscape = item.width > item.height;
+          const pageWidth = isLandscape ? A4_HEIGHT : A4_WIDTH;
+          const pageHeight = isLandscape ? A4_WIDTH : A4_HEIGHT;
+
+          const margin = 28; // 余白
+          const maxWidth = pageWidth - margin * 2;
+          const maxHeight = pageHeight - margin * 2;
+
+          const scale = Math.min(maxWidth / item.width, maxHeight / item.height, 1);
+          const drawWidth = item.width * scale;
+          const drawHeight = item.height * scale;
+
+          const x = (pageWidth - drawWidth) / 2;
+          const y = (pageHeight - drawHeight) / 2;
+
+          const page = mergedPdf.addPage([pageWidth, pageHeight]);
+          page.drawImage(embeddedImg, {
+            x: x,
+            y: y,
+            width: drawWidth,
+            height: drawHeight
+          });
+        }
       }
     }
 
@@ -219,10 +328,10 @@ mergeBtn.addEventListener('click', async () => {
     }
 
     CommonUtils.downloadBlob(mergedBlob, outName);
-    statusText.textContent = '結合が完了しました！ダウンロードを開始しました。';
+    statusText.textContent = '完了しました！ダウンロードを開始しました。';
   } catch (err) {
     console.error(err);
-    alert('PDF結合処理中にエラーが発生しました。コンソールをご確認ください。');
+    alert('処理中にエラーが発生しました。コンソールをご確認ください。');
     statusText.textContent = 'エラーが発生しました。';
   } finally {
     mergeBtn.disabled = false;
@@ -231,8 +340,8 @@ mergeBtn.addEventListener('click', async () => {
 
 // すべて消去
 clearBtn.addEventListener('click', () => {
-  if (!confirm('取り込んだPDFをすべて消去しますか？')) return;
-  pdfItems = [];
+  if (!confirm('取り込んだファイルをすべて消去しますか？')) return;
+  fileItems = [];
   fileList.innerHTML = '';
   controlPanel.style.display = 'none';
   progressWrapper.style.display = 'none';
