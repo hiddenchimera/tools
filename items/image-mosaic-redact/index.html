@@ -99,6 +99,44 @@
       pointer-events: none;
       display: none;
     }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -163,6 +201,34 @@
         <button id="download-btn" class="btn">加工済み画像を保存</button>
       </div>
     </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>加工アルゴリズム・セキュリティ仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力・保存仕様</h4>
+          <ul>
+            <li><strong>入力:</strong> PNG, JPG/JPEG, WebP, AVIF, GIF, BMP</li>
+            <li><strong>出力:</strong> PNG（ロスレス・高精細）。加工の劣化を防ぎ、元画像の解像度を100%維持して出力します。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>マスキングアルゴリズム</h4>
+          <ul>
+            <li><strong>モザイク:</strong> 指定ブロックサイズごとにピクセル平均色を算出し、タイル状に塗りつぶし。</li>
+            <li><strong>ぼかし:</strong> Canvas 2D <code>filter = 'blur(Xpx)'</code> を使用したガウシアンブラー処理。</li>
+            <li><strong>黒塗り・白塗り:</strong> <code>fillRect</code> による単色矩形塗りつぶし。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>不可逆加工（復元不可能性）</h4>
+          <ul>
+            <li><strong>ピクセル破壊:</strong> マスク部分はHTML Canvas上で元のピクセルデータが完全に上書きされるため、レイヤー構造のある画像編集ソフト等で開いても元の情報を復元することは数学的に不可能です。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
   </main>
 
   <footer>
