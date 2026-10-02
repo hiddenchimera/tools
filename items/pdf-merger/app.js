@@ -16,16 +16,34 @@ const statusText = document.getElementById('status-text');
 // 隠しファイル入力
 const hiddenFileInput = document.createElement('input');
 hiddenFileInput.type = 'file';
-hiddenFileInput.accept = '.pdf, image/*';
+hiddenFileInput.accept = '.pdf,image/*';
 hiddenFileInput.multiple = true;
 hiddenFileInput.style.display = 'none';
 document.body.appendChild(hiddenFileInput);
 
-// ドロップゾーン初期化（PDFおよび画像）
-CommonUtils.initDropzone(dropzone, async (files) => {
-  const fileArray = Array.isArray(files) ? files : [files];
-  await handleIncomingFiles(fileArray);
-}, '.pdf,image/*');
+// --- 複数ファイル対応ドラッグ＆ドロップ実装 ---
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('dragover');
+});
+
+dropzone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+});
+
+dropzone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    // 複数ファイルを一括で配列化して処理関数へ渡す
+    await handleIncomingFiles(Array.from(e.dataTransfer.files));
+  }
+});
+
+dropzone.addEventListener('click', () => {
+  hiddenFileInput.click();
+});
 
 addMoreBtn.addEventListener('click', () => {
   hiddenFileInput.click();
@@ -38,7 +56,7 @@ hiddenFileInput.addEventListener('change', async (e) => {
   }
 });
 
-// ファイル受付・解析
+// ファイル受付・解析（複数ファイルを順次処理して追加）
 async function handleIncomingFiles(files) {
   for (const file of files) {
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -291,7 +309,7 @@ mergeBtn.addEventListener('click', async () => {
             height: item.height
           });
         } else {
-          // A4フィット（向き判定）
+          // A4フィット（向き自動判定）
           const isLandscape = item.width > item.height;
           const pageWidth = isLandscape ? A4_HEIGHT : A4_WIDTH;
           const pageHeight = isLandscape ? A4_WIDTH : A4_HEIGHT;
