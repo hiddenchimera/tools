@@ -140,11 +140,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   closeBtn.addEventListener('click', closeDrawer);
   overlay.addEventListener('click', closeDrawer);
 
-  // 3. items.json の相対パスを現在の階層から自動判定
-  // items/... の配下にいれば "../../items.json"、ルートなら "./items.json"
-  const isSubFolder = window.location.pathname.includes('/items/');
-  const jsonPath = isSubFolder ? '../../items.json' : './items.json';
-  const rootPath = isSubFolder ? '../../' : './';
+  // 3. ルート相対パスに統一して items.json を取得
+  const jsonPath = '/items.json';
+  const rootPath = '/';
 
   const iconMap = {
     film: '🎬',
@@ -177,9 +175,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    const currentPath = window.location.pathname;
+    const isTopPage = currentPath === '/' || currentPath === '/index.html';
+
     let html = `
       <div class="drawer-group">
-        <a href="${rootPath}" class="drawer-link ${!isSubFolder ? 'current' : ''}">
+        <a href="${rootPath}" class="drawer-link ${isTopPage ? 'current' : ''}">
           <span class="drawer-link-icon">🏠</span>
           <span class="drawer-link-text">トップページ</span>
         </a>
@@ -195,9 +196,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
 
       group.items.forEach(tool => {
-        // 現在のページかどうか判定
-        const isCurrent = window.location.pathname.includes(tool.id);
-        const targetUrl = isSubFolder ? `../${tool.id}/` : tool.path;
+        // ルート相対パス（/items/ツール名/）でリンクを生成
+        const targetUrl = `/items/${tool.id}/`;
+        const isCurrent = currentPath.includes(`/items/${tool.id}`);
         const icon = iconMap[tool.icon] || iconMap.default;
 
         html += `
