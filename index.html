@@ -15,11 +15,11 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>完全無料・ブラウザ完結型 メディアツール | Tools</title>
-  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型のメディアツール集。サーバー送信なしで安全にGIF変換、音声抽出、トリミング、画像変換が可能です。">
+  <meta name="description" content="登録不要・完全無料で使えるブラウザ完結型のメディアツール集。サーバー送信なしで安全に画像圧縮、PDF結合、文字数カウント、GIF変換、音声抽出が可能です。">
   
   <!-- OGP / SEO設定 -->
   <meta property="og:title" content="完全無料・ブラウザ完結型 メディアツール">
-  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声・画像のメディアツール群。">
+  <meta property="og:description" content="完全クライアント処理で安全・高速な動画・音声・画像・テキストのWebツール群。">
   <meta property="og:type" content="website">
 
   <link rel="stylesheet" href="./assets/css/common.css">
@@ -34,21 +34,29 @@
 
   <main>
     <section class="hero">
-      <h1>完全無料・ブラウザ完結型 メディアツール</h1>
-      <p>会員登録・サーバー送信なし。すべての編集・変換がお使いの端末内で安全に完結します。</p>
+      <h1>完全無料・ブラウザ完結型 Webツール集</h1>
+      <p>会員登録・サーバー送信なし。すべての処理がお使いの端末内で安全・高速に完結します。</p>
     </section>
 
-    <!-- カテゴリ1: 動画・音声の編集・変換ツール -->
+    <!-- カテゴリ1: 画像・文書・PDFの変換・最適化ツール -->
     <section class="category-section">
-      <h2 class="category-title">1. 動画・音声の編集・変換ツール</h2>
-      <div id="video-tool-container" class="tool-grid"></div>
-    </section>
-
-    <!-- カテゴリ2: 画像・メディアの変換・最適化ツール -->
-    <section class="category-section">
-      <h2 class="category-title">2. 画像・メディアの変換・最適化ツール</h2>
-      <p class="category-desc">ブラウザ標準機能を使用し、完全に端末内で高速かつ安全に処理します。</p>
+      <h2 class="category-title">1. 画像・文書・PDFの変換・最適化ツール</h2>
+      <p class="category-desc">サーバー送信ゼロで機密ファイルも安心。ブラウザ内で高速に一括圧縮・結合・編集します。</p>
       <div id="image-tool-container" class="tool-grid"></div>
+    </section>
+
+    <!-- カテゴリ2: テキスト・文章の校正・集計ツール -->
+    <section class="category-section">
+      <h2 class="category-title">2. テキスト・文章の校正・集計ツール</h2>
+      <p class="category-desc">就活ES、レポート、ブログ原稿のリアルタイム文字数把握や原稿用紙換算、推敲に。</p>
+      <div id="text-tool-container" class="tool-grid"></div>
+    </section>
+
+    <!-- カテゴリ3: 動画・音声の編集・変換ツール -->
+    <section class="category-section">
+      <h2 class="category-title">3. 動画・音声の編集・変換ツール</h2>
+      <p class="category-desc">動画のGIF化、トリミング、音声抽出、フォーマット相互変換を行います。</p>
+      <div id="video-tool-container" class="tool-grid"></div>
     </section>
   </main>
 
@@ -58,10 +66,10 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const videoContainer = document.getElementById('video-tool-container');
       const imageContainer = document.getElementById('image-tool-container');
+      const textContainer = document.getElementById('text-tool-container');
+      const videoContainer = document.getElementById('video-tool-container');
 
-      // アイコンのマッピング定義
       const iconMap = {
         film: '🎬',
         music: '🎵',
@@ -70,6 +78,8 @@
         image: '🖼️',
         maximize: '📐',
         shield: '🛡️',
+        zap: '⚡',
+        edit: '✍️',
         default: '🔧'
       };
 
@@ -95,23 +105,27 @@
         
         const tools = await response.json();
 
-        let videoHtml = '';
         let imageHtml = '';
+        let textHtml = '';
+        let videoHtml = '';
 
         tools.forEach(tool => {
-          if (tool.category === 'video-audio') {
-            videoHtml += renderCard(tool);
-          } else if (tool.category === 'image') {
+          if (tool.category === 'image') {
             imageHtml += renderCard(tool);
+          } else if (tool.category === 'text') {
+            textHtml += renderCard(tool);
+          } else if (tool.category === 'video-audio') {
+            videoHtml += renderCard(tool);
           }
         });
 
-        videoContainer.innerHTML = videoHtml || '<p style="color: var(--text-muted);">ツールがありません。</p>';
         imageContainer.innerHTML = imageHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
+        textContainer.innerHTML = textHtml || '<p style="color: var(--text-muted);">準備中です。</p>';
+        videoContainer.innerHTML = videoHtml || '<p style="color: var(--text-muted);">ツールがありません。</p>';
 
       } catch (error) {
         console.error(error);
-        videoContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
+        imageContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">ツールの読み込みに失敗しました。</p>';
       }
     });
   </script>
