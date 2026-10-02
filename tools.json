@@ -1,65 +1,83 @@
 [
   {
+    "id": "image-compressor",
+    "name": "画像一括圧縮・軽量化ツール",
+    "description": "複数画像を完全ローカルで一括圧縮・WebP変換・リサイズ。外部サーバーへの送信ゼロで安全に容量削減。",
+    "category": "image",
+    "path": "./items/image-compressor/",
+    "icon": "zap",
+    "tags": ["画像圧縮", "WebP変換", "リサイズ", "一括処理", "安全"]
+  },
+  {
     "id": "video-to-gif",
-    "category": "video-audio",
     "name": "動画GIF変換ツール",
-    "description": "動画から指定区間をGIFアニメーションに変換。完全無料・ブラウザ完結で安全・高速に処理します。",
+    "description": "動画の指定範囲を切り取り、ブラウザ内でパレット最適化された高品質なGIFアニメに変換します。",
+    "category": "video-audio",
     "path": "./items/video-to-gif/",
-    "icon": "film",
-    "tags": ["動画", "GIF", "変換"]
+    "icon": "repeat",
+    "tags": ["動画", "GIF", "高画質"]
   },
   {
     "id": "audio-extractor",
-    "category": "video-audio",
     "name": "動画から音声抽出ツール",
-    "description": "動画から音声のみを抽出してMP3/WAVで保存。完全無料・ブラウザ完結のためサーバー送信はありません。",
+    "description": "動画から音声トラックを抽出し、MP3・WAV・AACとして保存します。",
+    "category": "video-audio",
     "path": "./items/audio-extractor/",
     "icon": "music",
-    "tags": ["動画", "音声", "MP3", "WAV"]
+    "tags": ["音声抽出", "MP3", "WAV"]
   },
   {
     "id": "video-trimmer",
+    "name": "簡易動画トリミング・無音化",
+    "description": "動画の指定区間切り取りや音声のミュート（無音化）をブラウザ内で行います。",
     "category": "video-audio",
-    "name": "動画トリミング・無音化ツール",
-    "description": "動画の区間切り出しや音声消去（無音化）が可能。完全無料・ブラウザ完結で個別・同時処理に対応。",
     "path": "./items/video-trimmer/",
     "icon": "scissors",
-    "tags": ["動画", "トリミング", "ミュート"]
+    "tags": ["トリミング", "無音化", "カット"]
   },
   {
     "id": "video-converter",
+    "name": "動画・音声フォーマット変換",
+    "description": "MP4/MOV/WebMやMP3/WAV等を相互変換。音声の動画化（透過PNG・背景色指定）にも対応。",
     "category": "video-audio",
-    "name": "動画・音声フォーマット変換ツール",
-    "description": "MP4・MOV・WebM・MP3・WAV・M4Aの相互変換。動画の軽量化、音声の動画化（黒背景）にも対応。",
     "path": "./items/video-converter/",
-    "icon": "repeat",
-    "tags": ["動画", "音声", "MP4", "MP3", "WAV", "変換"]
+    "icon": "film",
+    "tags": ["フォーマット変換", "音声動画化", "透過PNG"]
+  },
+  {
+    "id": "video-splitter",
+    "name": "動画自動分割ツール",
+    "description": "長尺動画をX（140秒）やLINE（5分）などの制限ごとに自動で均等分割・一括ZIP保存。",
+    "category": "video-audio",
+    "path": "./items/video-splitter/",
+    "icon": "film",
+    "tags": ["分割", "X(Twitter)", "LINE"]
   },
   {
     "id": "image-converter",
+    "name": "画像フォーマット相互変換",
+    "description": "WebP・JPG・PNGなどの相互変換。EXIFメタデータも自動で除去。",
     "category": "image",
-    "name": "画像フォーマット相互変換ツール",
-    "description": "WebP / JPG / PNG / AVIF の相互変換や一括圧縮、EXIF削除。ブラウザ完結で一瞬で変換。",
     "path": "./items/image-converter/",
     "icon": "image",
-    "tags": ["画像", "WebP", "PNG", "JPG", "変換", "EXIF削除"]
-  },
-  {
-    "id": "image-square-padding",
-    "category": "image",
-    "name": "画像リサイズ・正方形余白追加ツール",
-    "description": "SNS（Instagram・X）向けに、画像の比率を保ったまま白・黒・透明の余白をつけて正方形化。",
-    "path": "./items/image-square-padding/",
-    "icon": "maximize",
-    "tags": ["画像", "正方形", "余白", "リサイズ", "SNS"]
+    "tags": ["画像変換", "WebP", "EXIF削除"]
   },
   {
     "id": "image-mosaic-redact",
+    "name": "画像モザイク・黒塗りツール",
+    "description": "個人情報や機密部分をドラッグ操作でモザイク・ぼかし・黒塗り・白塗り加工。",
     "category": "image",
-    "name": "画像モザイク・黒塗り加工ツール",
-    "description": "顔や個人情報、機密箇所をドラッグ操作で素早く隠せる軽量プライバシー保護ツール。",
     "path": "./items/image-mosaic-redact/",
     "icon": "shield",
-    "tags": ["画像", "モザイク", "黒塗り", "プライバシー", "ぼかし"]
+    "tags": ["モザイク", "黒塗り", "プライバシー"]
+  },
+  {
+    "id": "image-square-padding",
+    "name": "画像正方形化・余白追加",
+    "description": "比率を維持したまま余白（白・黒・透明・ぼかし）を追加し、SNS向け正方形（1:1）を作成。",
+    "category": "image",
+    "path": "./items/image-square-padding/",
+    "icon": "maximize",
+    "tags": ["正方形化", "余白追加", "SNS用"]
   }
 ]
