@@ -1,5 +1,14 @@
 [
   {
+    "id": "text-counter",
+    "name": "文字数カウント・原稿用紙換算ツール",
+    "description": "リアルタイムで文字数（空白除外）、400字詰原稿用紙枚数、読了時間、文章校正チェック。サーバー送信ゼロで安心。",
+    "category": "text",
+    "path": "./items/text-counter/",
+    "icon": "edit",
+    "tags": ["文字数カウント", "原稿用紙換算", "読了時間", "ES/レポート", "文章校正"]
+  },
+  {
     "id": "pdf-merger",
     "name": "PDF結合・画像PDF変換ツール",
     "description": "複数PDFの結合やJPG/PNG/WebPなどの画像を一括で1本のPDFに変換・統合。サーバー送信ゼロで機密保持も万全。",
