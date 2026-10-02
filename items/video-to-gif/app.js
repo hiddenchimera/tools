@@ -4,6 +4,8 @@ const { createFFmpeg, fetchFile } = FFmpeg;
 let ffmpeg = null;
 let currentFile = null;
 let generatedBlob = null;
+let currentVideoUrl = null;
+let currentGifUrl = null;
 
 const dropzone = document.getElementById('dropzone');
 const editorSection = document.getElementById('editor-section');
@@ -31,9 +33,21 @@ CommonUtils.initDropzone(dropzone, (file) => {
 });
 
 function loadFile(file) {
+  // 既存の動画プレビューURLを解放
+  if (currentVideoUrl) {
+    URL.revokeObjectURL(currentVideoUrl);
+    currentVideoUrl = null;
+  }
+  // 既存のGIF出力URLを解放
+  if (currentGifUrl) {
+    URL.revokeObjectURL(currentGifUrl);
+    currentGifUrl = null;
+    outputGif.removeAttribute('src');
+  }
+
   currentFile = file;
-  const fileUrl = URL.createObjectURL(file);
-  videoPlayer.src = fileUrl;
+  currentVideoUrl = URL.createObjectURL(file);
+  videoPlayer.src = currentVideoUrl;
 
   videoPlayer.onloadedmetadata = () => {
     startTimeInput.value = '0';
@@ -59,6 +73,13 @@ convertBtn.addEventListener('click', async () => {
     return;
   }
 
+  // 再変換時に前回のGIFプレビューURLを破棄
+  if (currentGifUrl) {
+    URL.revokeObjectURL(currentGifUrl);
+    currentGifUrl = null;
+    outputGif.removeAttribute('src');
+  }
+
   convertBtn.disabled = true;
   progressWrapper.style.display = 'block';
   outputSection.style.display = 'none';
@@ -69,7 +90,6 @@ convertBtn.addEventListener('click', async () => {
     if (!ffmpeg) {
       ffmpeg = createFFmpeg({
         log: true,
-        // 公式の標準コアを使用
         corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
       });
       ffmpeg.setProgress(({ ratio }) => {
@@ -108,8 +128,8 @@ convertBtn.addEventListener('click', async () => {
     generatedBlob = new Blob([data.buffer], { type: 'image/gif' });
 
     // プレビュー表示
-    const gifUrl = URL.createObjectURL(generatedBlob);
-    outputGif.src = gifUrl;
+    currentGifUrl = URL.createObjectURL(generatedBlob);
+    outputGif.src = currentGifUrl;
     outputSize.textContent = `ファイルサイズ: ${CommonUtils.formatBytes(generatedBlob.size)}`;
     outputSection.style.display = 'block';
     statusText.textContent = '完了しました！';
