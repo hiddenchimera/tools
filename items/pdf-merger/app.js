@@ -21,6 +21,16 @@ hiddenFileInput.multiple = true;
 hiddenFileInput.style.display = 'none';
 document.body.appendChild(hiddenFileInput);
 
+// 全サムネイルURLの破棄・メモリ解放
+function clearAllThumbnails() {
+  fileItems.forEach(item => {
+    if (item.type === 'image' && item.thumbUrl) {
+      URL.revokeObjectURL(item.thumbUrl);
+      item.thumbUrl = null;
+    }
+  });
+}
+
 // --- 複数ファイル対応ドラッグ＆ドロップ実装 ---
 dropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
@@ -36,7 +46,6 @@ dropzone.addEventListener('drop', async (e) => {
   e.preventDefault();
   dropzone.classList.remove('dragover');
   if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    // 複数ファイルを一括で配列化して処理関数へ渡す
     await handleIncomingFiles(Array.from(e.dataTransfer.files));
   }
 });
@@ -56,7 +65,7 @@ hiddenFileInput.addEventListener('change', async (e) => {
   }
 });
 
-// ファイル受付・解析（複数ファイルを順次処理して追加）
+// ファイル受付・解析
 async function handleIncomingFiles(files) {
   for (const file of files) {
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -221,6 +230,11 @@ function renderFileList() {
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.currentTarget.dataset.index, 10);
+      const target = fileItems[idx];
+      // 削除対象が画像ならサムネイルURLを破棄
+      if (target && target.type === 'image' && target.thumbUrl) {
+        URL.revokeObjectURL(target.thumbUrl);
+      }
       fileItems.splice(idx, 1);
       if (fileItems.length === 0) {
         controlPanel.style.display = 'none';
@@ -276,7 +290,6 @@ mergeBtn.addEventListener('click', async () => {
   statusText.textContent = '新規PDFを作成中...';
 
   const layoutMode = imageLayoutModeSelect.value;
-  // A4 ポイントサイズ (72 dpi): 595.28 x 841.89
   const A4_WIDTH = 595.28;
   const A4_HEIGHT = 841.89;
 
@@ -296,11 +309,9 @@ mergeBtn.addEventListener('click', async () => {
           copiedPages.forEach(page => mergedPdf.addPage(page));
         }
       } else if (item.type === 'image') {
-        // 画像埋め込み（PNGバイトデータ）
         const embeddedImg = await mergedPdf.embedPng(item.buffer);
 
         if (layoutMode === 'original-size') {
-          // 画像サイズそのままのページ
           const page = mergedPdf.addPage([item.width, item.height]);
           page.drawImage(embeddedImg, {
             x: 0,
@@ -309,12 +320,11 @@ mergeBtn.addEventListener('click', async () => {
             height: item.height
           });
         } else {
-          // A4フィット（向き自動判定）
           const isLandscape = item.width > item.height;
           const pageWidth = isLandscape ? A4_HEIGHT : A4_WIDTH;
           const pageHeight = isLandscape ? A4_WIDTH : A4_HEIGHT;
 
-          const margin = 28; // 余白
+          const margin = 28;
           const maxWidth = pageWidth - margin * 2;
           const maxHeight = pageHeight - margin * 2;
 
@@ -359,6 +369,7 @@ mergeBtn.addEventListener('click', async () => {
 // すべて消去
 clearBtn.addEventListener('click', () => {
   if (!confirm('取り込んだファイルをすべて消去しますか？')) return;
+  clearAllThumbnails();
   fileItems = [];
   fileList.innerHTML = '';
   controlPanel.style.display = 'none';
