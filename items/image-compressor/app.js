@@ -21,6 +21,14 @@ const zipDlBtn = document.getElementById('zip-dl-btn');
 const recompressBtn = document.getElementById('recompress-btn');
 const clearBtn = document.getElementById('clear-btn');
 
+// 隠しファイル入力（複数選択対応）
+const hiddenFileInput = document.createElement('input');
+hiddenFileInput.type = 'file';
+hiddenFileInput.accept = 'image/*';
+hiddenFileInput.multiple = true;
+hiddenFileInput.style.display = 'none';
+document.body.appendChild(hiddenFileInput);
+
 // スライダー表示連動
 qualitySlider.addEventListener('input', () => {
   qualityVal.textContent = `${qualitySlider.value}%`;
@@ -46,10 +54,39 @@ resizeModeSelect.addEventListener('change', () => {
   }
 });
 
-// ドロップゾーン初期化（複数ファイル対応）
-CommonUtils.initDropzone(dropzone, (files) => {
-  const fileList = Array.isArray(files) ? files : [files];
-  const imageFiles = fileList.filter(f => f.type.startsWith('image/'));
+// --- 複数ファイル対応ドラッグ＆ドロップ実装 ---
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('dragover');
+});
+
+dropzone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+});
+
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    handleIncomingImages(Array.from(e.dataTransfer.files));
+  }
+});
+
+dropzone.addEventListener('click', () => {
+  hiddenFileInput.click();
+});
+
+hiddenFileInput.addEventListener('change', (e) => {
+  if (e.target.files && e.target.files.length > 0) {
+    handleIncomingImages(Array.from(e.target.files));
+    hiddenFileInput.value = '';
+  }
+});
+
+// 画像ファイルの受け付けと処理開始
+function handleIncomingImages(files) {
+  const imageFiles = files.filter(f => f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|avif|gif|bmp|svg)$/i.test(f.name));
 
   if (imageFiles.length === 0) {
     alert('有効な画像ファイル（PNG, JPG, WebP等）を選択してください。');
@@ -60,7 +97,7 @@ CommonUtils.initDropzone(dropzone, (files) => {
   originalFiles = originalFiles.concat(imageFiles);
   controlPanel.style.display = 'block';
   processAllImages();
-}, 'image/*');
+}
 
 // 再圧縮ボタン
 recompressBtn.addEventListener('click', () => {
