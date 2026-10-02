@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R3DRCDH9Z3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R3DRCDH9Z3');
+    gtag('config', 'G-FW7R85YTVX');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【無料・安全】画像一括圧縮・軽量化・WebP変換ツール | サーバー送信なし - Tools</title>
+  <meta name="description" content="複数画像をブラウザ内で高速に一括圧縮・リサイズ・WebP変換。画像データをサーバーへ一切送信しない完全クライアント処理のため、社内機密や個人写真も安全に容量削減できます。ZIP一括ダウンロード対応。">
+  <meta name="keywords" content="画像圧縮,画像軽量化,WebP変換,画像一括リサイズ,安全,サーバー送信なし,無料">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="【無料・安全】画像一括圧縮・軽量化・WebP変換ツール | サーバー送信なし">
+  <meta property="og:description" content="端末内だけで複数画像を一括圧縮・WebP変換。画像が外部に送信されないためセキュリティ・機密保持も万全です。">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../../assets/css/common.css">
+  <!-- ZIP一括ダウンロード用JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- 構造化データ（FAQPage / SoftwareApplication） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "画像一括圧縮・軽量化・WebP変換ツール",
+        "url": "https://tools.hiddenchimera.com/items/image-compressor/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "JPY"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "画像がサーバーにアップロードされることはありますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "いいえ、一切ありません。本ツールはお使いのブラウザ標準のCanvas機能のみを用いて端末ローカルで直接画像データを変換します。外部サーバーへの通信は発生しないため、社内資料やプライベートな写真も安心して圧縮いただけます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "一度に処理できる枚数や容量に制限はありますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "枚数やファイル容量の強制的な上限はありません。十数枚〜数十枚の画像をまとめてドラッグ＆ドロップして一括圧縮することが可能です。お使いの端末（PCやスマートフォン）のメモリ性能に応じて高速に並列処理されます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "位置情報やカメラ情報（EXIF）は削除されますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "はい。ブラウザの描画領域（Canvas）を経由して圧縮再エンコードを行うため、Exifに含まれる撮影位置のGPS座標や撮影機器情報、撮影日時は自動的に除去されます。"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .control-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-group select,
+    .form-group input[type="number"],
+    .form-group input[type="range"] {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+    }
+    .slider-val-badge {
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-width: 44px;
+      text-align: right;
+    }
+    .summary-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .summary-stat {
+      font-size: 0.9rem;
+    }
+    .summary-stat strong {
+      color: var(--primary-color);
+      font-size: 1.15rem;
+    }
+    .results-table-container {
+      max-height: 380px;
+      overflow-y: auto;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+    }
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .results-table th, .results-table td {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .results-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .rate-badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    .rate-badge.negative {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+    .btn-dl-item {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-dl-item:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .action-row button {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* SEO解説コンテンツ領域 */
+    .seo-article {
+      margin-top: 3.5rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--border-color);
+      line-height: 1.8;
+      color: var(--text-color);
+    }
+    .seo-article h3 {
+      font-size: 1.35rem;
+      margin-top: 2rem;
+      margin-bottom: 0.85rem;
+      color: var(--text-color);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+    }
+    .seo-article h4 {
+      font-size: 1.1rem;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .seo-article p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .seo-article ul, .seo-article ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .seo-article li {
+      margin-bottom: 0.4rem;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+    .comparison-table th, .comparison-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: center;
+    }
+    .comparison-table th {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 600;
+    }
+    .check-yes {
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .check-no {
+      color: #f87171;
+    }
+    .faq-block {
+      margin-top: 1.5rem;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1.25rem;
+    }
+    .faq-q {
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .faq-a {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 画像一括圧縮・軽量化ツール
+    </div>
+
+    <h1>画像一括圧縮・軽量化・WebP変換ツール</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      複数画像をブラウザ内で高速に一括圧縮・リサイズ・フォーマット変換。<br>
+      画像データはサーバーに一切アップロードされないため、機密書類や個人写真も安全に容量削減できます。
+    </p>
+
+    <!-- ファイルドロップエリア（複数ファイル対応） -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">⚡</div>
+      <h3>圧縮する画像をドラッグ＆ドロップ（複数枚可）</h3>
+      <p>またはクリックしてファイルを選択（PNG, JPG, WebP, AVIF, GIFなど）</p>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div id="control-panel" class="control-panel">
+      
+      <div class="form-grid">
+        <!-- 画質（圧縮強度） -->
+        <div class="form-group">
+          <label for="quality-slider">
+            <span>圧縮品質 (Quality)</span>
+            <span id="quality-val" class="slider-val-badge">80%</span>
+          </label>
+          <div class="slider-row">
+            <input type="range" id="quality-slider" min="10" max="100" value="80" step="5">
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">※おすすめ: 75〜85%（見た目を保ちつつ大幅削減）</span>
+        </div>
+
+        <!-- 出力フォーマット -->
+        <div class="form-group">
+          <label for="format-select">出力フォーマット</label>
+          <select id="format-select">
+            <option value="webp" selected>WebP（Web標準・最も軽量・高圧縮）</option>
+            <option value="jpeg">JPG / JPEG（写真向け汎用）</option>
+            <option value="png">PNG（ロスレス・透過保持）</option>
+            <option value="original">元の形式を維持</option>
+          </select>
+        </div>
+
+        <!-- リサイズ指定 -->
+        <div class="form-group">
+          <label for="resize-mode">サイズ変更（リサイズ）</label>
+          <select id="resize-mode">
+            <option value="none" selected>リサイズなし（元の解像度）</option>
+            <option value="max-width">最大横幅を指定（縮小）</option>
+            <option value="percent">パーセント指定（縮小）</option>
+          </select>
+        </div>
+
+        <!-- リサイズ用数値入力 -->
+        <div class="form-group" id="resize-val-group" style="display: none;">
+          <label for="resize-val" id="resize-val-label">最大幅 (px)</label>
+          <input type="number" id="resize-val" min="100" max="8000" value="1920" step="50">
+        </div>
+      </div>
+
+      <!-- 集計サマリーバー -->
+      <div class="summary-bar">
+        <div class="summary-stat">
+          枚数: <strong id="stat-count">0</strong> 枚
+        </div>
+        <div class="summary-stat">
+          元の総容量: <span id="stat-original-size">0 KB</span>
+        </div>
+        <div class="summary-stat">
+          圧縮後総容量: <strong id="stat-compressed-size">0 KB</strong>
+        </div>
+        <div class="summary-stat">
+          合計削減率: <strong id="stat-reduction-rate" style="color: #4ade80;">- 0%</strong>
+        </div>
+      </div>
+
+      <!-- 処理済み一覧リスト -->
+      <div class="results-table-container">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>プレビュー</th>
+              <th>ファイル名</th>
+              <th>圧縮前</th>
+              <th>圧縮後</th>
+              <th>削減率</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody">
+            <!-- JSで動的レンダリング -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ダウンロードボタン群 -->
+      <div class="action-row">
+        <button id="zip-dl-btn" class="btn" style="background: var(--primary-color);">📦 まとめてZIPダウンロード</button>
+        <button id="recompress-btn" class="btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color);">🔄 設定を変えて再圧縮</button>
+        <button id="clear-btn" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid #ef4444; max-width: 160px;">すべて消去</button>
+      </div>
+
+    </div>
+
+    <!-- SEO解説コンテンツ（検索意図充足・被リンク獲得用） -->
+    <article class="seo-article">
+      <h3>なぜ「サーバー送信なし」の画像圧縮が選ばれるのか？</h3>
+      <p>
+        一般的なオンライン画像圧縮ツールの多くは、ユーザーがアップロードした画像を一度サービス運営者の外部サーバーに転送し、クラウド側で圧縮処理を行っています。<br>
+        しかし、業務で扱う未公開のプレゼン資料、顧客情報が写り込んだキャプチャ画像、私的な写真などを外部サーバーへ送信することは、<strong>情報漏洩リスクや社内セキュリティ規定違反</strong>に繋がる懸念があります。
+      </p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>一般的なオンライン圧縮サービス</th>
+            <th>当ツール（ブラウザ完結型）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>画像の送信先</td>
+            <td>外部クラウドサーバー（海外含む）</td>
+            <td class="check-yes">なし（お使いの端末内のみ）</td>
+          </tr>
+          <tr>
+            <td>情報漏洩・流出リスク</td>
+            <td>サーバー保存・通信傍受の懸念あり</td>
+            <td class="check-yes">ゼロ（通信そのものが発生しない）</td>
+          </tr>
+          <tr>
+            <td>アップロード待ち時間</td>
+            <td>回線速度に依存（ファイルが大きいと低速）</td>
+            <td class="check-yes">瞬時（ローカルメモリ処理）</td>
+          </tr>
+          <tr>
+            <td>個人情報（Exif）対策</td>
+            <td>サービスによって対応が異なる</td>
+            <td class="check-yes">Canvas再描画により自動完全除去</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>WebP形式への変換がWebサイト・ブログのSEOに有利な理由</h3>
+      <p>
+        GoogleはWebページの表示速度を「Core Web Vitals（主なウェブ指標）」として検索順位のランキング要素に組み込んでいます。Webサイトが重くなる最大の原因は多くの場合「画像ファイルの容量」です。<br>
+        次世代フォーマットである<strong>WebP（ウェッピー）</strong>を採用することで、従来のJPGやPNGと比較して<strong>約25%〜35%ファイルサイズを軽量化</strong>でき、Google PageSpeed Insightsのスコア改善や離脱率低下に直結します。
+      </p>
+
+      <h3>圧縮品質（Quality）の目安とおすすめ設定</h3>
+      <ul>
+        <li><strong>75%〜85%（推奨・標準）:</strong> 人間の目では劣化がほとんど識別できないクオリティを維持しながら、容量を50%〜80%削減できます。Webサイトやブログ記事の掲載に最適です。</li>
+        <li><strong>60%〜70%（軽量重視）:</strong> ファイルサイズを極限まで小さくしたい場合や、サムネイル画像、SNSへの連続投稿におすすめです。</li>
+        <li><strong>90%以上（高品質重視）:</strong> ポートフォリオや細密なイラストなど、ディテールを最優先に残したい場合に指定します。</li>
+      </ul>
+
+      <h3>よくある質問（FAQ）</h3>
+      <div class="faq-block">
+        <div class="faq-item">
+          <div class="faq-q">❓ 画像は何枚まで一括圧縮できますか？</div>
+          <p class="faq-a">制限はありません。1枚から数十枚までまとめてドラッグ＆ドロップ可能です。処理後は「まとめてZIPダウンロード」ボタンで一括保存できます。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ スマートフォン（iPhone / Android）でも利用できますか？</div>
+          <p class="faq-a">はい。モダンブラウザ（Safari, Chrome等）が動作する環境であれば、スマホやタブレットでもアプリ不要で高速に動作します。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ 会社のセキュリティPCでも利用して大丈夫ですか？</div>
+          <p class="faq-a">はい。外部サーバーへの通信が発生せず、すべてお使いのPCのブラウザ内部（ローカル環境）で完結するため、安全に業務資料等の軽量化にご利用いただけます。</p>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
