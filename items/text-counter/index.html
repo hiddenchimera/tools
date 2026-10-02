@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R3DRCDH9Z3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R3DRCDH9Z3');
+    gtag('config', 'G-FW7R85YTVX');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【無料・安全】文字数カウント・原稿用紙換算・文章校正ツール | サーバー送信なし - Tools</title>
+  <meta name="description" content="リアルタイムで文字数（空白除外・改行除外）、原稿用紙枚数（400字詰め）、読了時間、バイト数を自動計算。サーバー送信ゼロで入力テキストが外部流出しないため、就活ESや未公開記事・レポートの下書きも安全に推敲できます。">
+  <meta name="keywords" content="文字数カウント,文字数 カウント 空白除く,原稿用紙 換算,400字詰め,読了時間 計算,文章校正,就活 ES,安全,サーバー送信なし">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="【無料・安全】文字数カウント・原稿用紙換算・文章校正ツール | サーバー送信なし">
+  <meta property="og:description" content="文字数、原稿用紙枚数、読了時間をリアルタイム計測。入力内容はサーバーに送信されないため下書きや機密文書も安心。">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../../assets/css/common.css">
+
+  <!-- 構造化データ（FAQPage / SoftwareApplication） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "文字数カウント・原稿用紙換算・文章校正ツール",
+        "url": "https://tools.hiddenchimera.com/items/text-counter/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "JPY"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "入力した文章がサーバーに保存されたり送信される心配はありますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "いいえ、一切ありません。本ツールは入力された文字列をブラウザ内蔵のJavaScriptメモリ上でのみ解析します。外部サーバーへの通信は一切発生しないため、就活のエントリーシート、未発表の論文、社外秘レポートなども安心して編集いただけます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "空白や改行を除外した文字数もカウントできますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "はい。「空白・改行を含む総文字数」「空白（全角・半角）を除外した文字数」「改行のみを除外した文字数」を個別にリアルタイム表示します。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "原稿用紙換算はどのように計算されますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "一般的な400字詰め原稿用紙（20字×20行）を基準として計算します。単純な文字数割り（文字数÷400）だけでなく、改行による行送りを正確にシミュレーションした実質枚数も算出します。"
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .counter-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .counter-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+    .editor-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .editor-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.35rem 0.65rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-tool:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .btn-tool.danger:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: #ef4444;
+    }
+    #text-input {
+      width: 100%;
+      min-height: 480px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      color: var(--text-color);
+      padding: 1.25rem;
+      font-size: 1rem;
+      line-height: 1.75;
+      font-family: inherit;
+      resize: vertical;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #text-input:focus {
+      border-color: var(--primary-color);
+    }
+    .stats-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+    .stat-card h3 {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .primary-stat {
+      text-align: center;
+      padding: 0.5rem 0 1rem 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+    }
+    .primary-stat-num {
+      font-size: 2.75rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      line-height: 1;
+    }
+    .primary-stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+    .stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      font-size: 0.875rem;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-row-val {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    .analysis-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .analysis-item {
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+      border-left: 3px solid var(--border-color);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .analysis-item.alert {
+      border-left-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.05);
+      color: #fbbf24;
+    }
+    .save-indicator {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+
+    /* SEO解説コンテンツ領域 */
+    .seo-article {
+      margin-top: 2.5rem;
+      line-height: 1.8;
+      color: var(--text-color);
+    }
+    .seo-article h3 {
+      font-size: 1.35rem;
+      margin-top: 2rem;
+      margin-bottom: 0.85rem;
+      color: var(--text-color);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+    }
+    .seo-article p {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .seo-article ul {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .seo-article li {
+      margin-bottom: 0.4rem;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+    .comparison-table th, .comparison-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: center;
+    }
+    .comparison-table th {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 600;
+    }
+    .check-yes {
+      color: #4ade80;
+      font-weight: bold;
+    }
+    .faq-block {
+      margin-top: 1.5rem;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1.25rem;
+    }
+    .faq-q {
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .faq-a {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 文字数カウント・原稿用紙換算ツール
+    </div>
+
+    <h1>文字数カウント・原稿用紙換算・文章校正ツール</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      文字数（空白除外・改行除外）、原稿用紙枚数、読了時間、バイト数をリアルタイムに自動計算。<br>
+      入力した文章は外部サーバーに一切送信されないため、就活ES・未公開原稿・社内報告書も安全に推敲できます。
+    </p>
+
+    <!-- メインエディタ＆集計パネル -->
+    <div class="counter-wrapper">
+      
+      <!-- 入力エリア -->
+      <div class="editor-container">
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <button id="copy-btn" class="btn-tool">📋 コピー</button>
+            <button id="clean-spaces-btn" class="btn-tool" title="連続スペース・不要な空白を除去">🧹 空白を整理</button>
+            <button id="sample-text-btn" class="btn-tool">📝 サンプル文章</button>
+          </div>
+          <div class="toolbar-right">
+            <span id="save-indicator" class="save-indicator">ローカル下書き保存済</span>
+            <button id="clear-btn" class="btn-tool danger">消去</button>
+          </div>
+        </div>
+
+        <textarea id="text-input" placeholder="ここに文章を入力またはペーストしてください。リアルタイムに文字数や原稿用紙枚数が計算されます..."></textarea>
+      </div>
+
+      <!-- 右側集計サイドバー -->
+      <div class="stats-sidebar">
+        
+        <!-- 主要文字数カード -->
+        <div class="stat-card">
+          <div class="primary-stat">
+            <div id="stat-total-chars" class="primary-stat-num">0</div>
+            <div class="primary-stat-label">文字数 (スペース・改行含む)</div>
+          </div>
+
+          <div class="stat-list">
+            <div class="stat-row">
+              <span>空白・スペース除く:</span>
+              <span id="stat-no-spaces" class="stat-row-val">0</span>
+            </div>
+            <div class="stat-row">
+              <span>改行除く:</span>
+              <span id="stat-no-breaks" class="stat-row-val">0</span>
+            </div>
+            <div class="stat-row">
+              <span>行数:</span>
+              <span id="stat-lines" class="stat-row-val">0 行</span>
+            </div>
+            <div class="stat-row">
+              <span>段落数:</span>
+              <span id="stat-paragraphs" class="stat-row-val">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 原稿用紙・目安時間カード -->
+        <div class="stat-card">
+          <h3>目安・換算</h3>
+          <div class="stat-list">
+            <div class="stat-row">
+              <span>400字詰 原稿用紙:</span>
+              <span id="stat-manuscript" class="stat-row-val">0.0 枚</span>
+            </div>
+            <div class="stat-row">
+              <span>行送り考慮 (実質):</span>
+              <span id="stat-manuscript-real" class="stat-row-val">0.0 枚</span>
+            </div>
+            <div class="stat-row">
+              <span>黙読目安 (500字/分):</span>
+              <span id="stat-read-time" class="stat-row-val">0 秒</span>
+            </div>
+            <div class="stat-row">
+              <span>音読目安 (300字/分):</span>
+              <span id="stat-speech-time" class="stat-row-val">0 秒</span>
+            </div>
+            <div class="stat-row">
+              <span>UTF-8 容量:</span>
+              <span id="stat-bytes-utf8" class="stat-row-val">0 B</span>
+            </div>
+            <div class="stat-row">
+              <span>Shift_JIS 換算:</span>
+              <span id="stat-bytes-sjis" class="stat-row-val">0 B</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 簡易文章チェックカード -->
+        <div class="stat-card">
+          <h3>文章チェック・分析</h3>
+          <div id="analysis-container" class="analysis-list">
+            <div class="analysis-item">文章を入力すると、助詞の連続や文末の重複を判定します。</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>計算ロジック・文字カウント仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>文字数カウント仕様</h4>
+          <ul>
+            <li><strong>サロゲートペア対応:</strong> 絵文字や異体字（例: 𠮷, 👨‍👩‍👧‍👦）を正確に処理するため、文字列をコードポイント単位（スプレッド構文 <code>[...text]</code>）で分割してカウント。</li>
+            <li><strong>空白判定:</strong> 半角スペース（U+0020）、全角スペース（U+3000）、タブ文字（\t）を除外対象として正確に識別。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>原稿用紙換算アルゴリズム</h4>
+          <ul>
+            <li><strong>単純換算:</strong> 空白を含む総文字数を400で除算。</li>
+            <li><strong>実質換算（行送り計算）:</strong> 20文字×20行の升目ルールに基づき、改行ごとに余白行を計算して実際の原稿用紙の消費枚数をシミュレート。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>プライバシー・自動保存</h4>
+          <ul>
+            <li><strong>サーバー通信ゼロ:</strong> 解析処理はすべてクライアントサイドJavaScriptで実行。</li>
+            <li><strong>LocalStorage下書き保存:</strong> ブラウザを誤って閉じても復元できるよう、端末のローカルストレージにのみ自動セーブされます。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <!-- SEO解説コンテンツ（検索意図充足・被リンク獲得用） -->
+    <article class="seo-article">
+      <h3>就活ESやレポートで「正確な文字数把握」が重要な理由</h3>
+      <p>
+        就職活動のエントリーシート（ES）や大学の課題レポート、Web記事の執筆では、「400字以内」「800字程度」などの厳格な文字数指定が設けられています。<br>
+        提出先やシステムによって「空白・改行を含むのか、それとも除外するのか」の基準が異なるため、両方の数値をリアルタイムに把握できるツールを使うことが誤字脱字や規定違反の防止に繋がります。
+      </p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>比較項目</th>
+            <th>一般的なオンライン文章チェッカー</th>
+            <th>当ツール（完全ブラウザ完結）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>下書きの送信先</td>
+            <td>外部クラウドサーバー（海外含む）</td>
+            <td class="check-yes">送信ゼロ（端末内のみ）</td>
+          </tr>
+          <tr>
+            <td>個人情報・機密保持</td>
+            <td>サーバーログやAI学習に利用される懸念あり</td>
+            <td class="check-yes">ゼロ（外部への流出リスクなし）</td>
+          </tr>
+          <tr>
+            <td>オフライン利用</td>
+            <td>不可（インターネット接続必須）</td>
+            <td class="check-yes">可能（ネット切断下でも動作）</td>
+          </tr>
+          <tr>
+            <td>サロゲートペア（絵文字）</td>
+            <td>文字数がズレる場合がある</td>
+            <td class="check-yes">コードポイント展開により完全対応</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>400字詰め原稿用紙換算の「単純計算」と「実質計算」の違い</h3>
+      <p>
+        一般的な文字数チェッカーでは「文字数 ÷ 400」という単純計算のみが表示されますが、実際の作文や小論文では<strong>段落ごとの改行によって行末に空白マスが発生</strong>します。<br>
+        当ツールでは、20文字×20行の原稿用紙の行送りをシミュレーションした「実質枚数」を併記するため、提出時に「思っていたより枚数が多くなってしまった（または足りなかった）」というズレを未然に防ぐことができます。
+      </p>
+
+      <h3>よくある質問（FAQ）</h3>
+      <div class="faq-block">
+        <div class="faq-item">
+          <div class="faq-q">❓ ブラウザを閉じてしまっても入力中の文章は残りますか？</div>
+          <p class="faq-a">はい。お使いのブラウザのローカルストレージに自動で随時保存されるため、誤ってタブを閉じたりリロードしても前回の続きから再開できます（「消去」ボタンでリセット可能）。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ 就活の自己PRや未公開の機密レポートを入力しても安全ですか？</div>
+          <p class="faq-a">はい、完全に安全です。入力データはネットワークを介して外部へ送信されることが一切ありません。</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">❓ 読了時間の目安はどのように算出していますか？</div>
+          <p class="faq-a">一般的な成人の平均的な読書速度である「黙読: 1分あたり500文字」「音読（スピーチ・プレゼン）: 1分あたり300文字」を基準として秒単位まで計算しています。</p>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
