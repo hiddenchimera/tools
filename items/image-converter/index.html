@@ -117,6 +117,44 @@
     .checkbox-group input {
       cursor: pointer;
     }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -185,6 +223,33 @@
         <div id="status-text" class="status-text">変換処理中...</div>
       </div>
     </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・変換アルゴリズムの詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>画像:</strong> WebP, PNG, JPEG/JPG, AVIF, GIF, BMP, SVG, ICO</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>出力対応フォーマット</h4>
+          <ul>
+            <li><strong>WebP:</strong> Google開発の次世代画像形式。アルファ透過を保持したままロッシー/ロスレス圧縮。</li>
+            <li><strong>JPEG:</strong> 透過部分は白背景（#FFFFFF）に自動合成。品質スライダー（10%〜100%）による量子化テーブル調整。</li>
+            <li><strong>PNG:</strong> 24bit RGB / 32bit RGBA ロスレス（非可逆劣化なし）。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>EXIF・個人情報の自動除去</h4>
+          <ul>
+            <li><strong>Canvas再描画方式:</strong> ピクセル生データのみを抽出し、Canvas上に再ラスタライズして出力するため、元のバイナリに埋め込まれていた GPS位置情報、撮影日時、カメラ機種名などの Exif メタデータは100%物理的に除去されます。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
   </main>
 
   <footer>
