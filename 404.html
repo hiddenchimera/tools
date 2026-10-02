@@ -18,33 +18,41 @@
   <title>404 Not Found - ページが見つかりませんでした | Tools</title>
   <meta name="description" content="お探しのページは見つかりませんでした。移動または削除された可能性があります。">
 
-  <link rel="stylesheet" href="./assets/css/common.css">
+  <link rel="stylesheet" href="/assets/css/common.css">
 
   <style>
     .not-found-wrapper {
       text-align: center;
-      padding: 4rem 1rem;
+      padding: 3rem 1rem 4rem;
       max-width: 600px;
       margin: 0 auto;
     }
+    .error-illustration {
+      max-width: 220px;
+      width: 100%;
+      height: auto;
+      margin: 0 auto 1.5rem;
+      display: block;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45));
+    }
     .error-code {
-      font-size: 5rem;
+      font-size: 3.5rem;
       font-weight: 800;
       color: var(--primary-color);
       line-height: 1;
-      margin-bottom: 1rem;
-      letter-spacing: -2px;
+      margin-bottom: 0.75rem;
+      letter-spacing: -1px;
     }
     .error-title {
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
+      font-size: 1.35rem;
+      margin-bottom: 0.75rem;
       color: var(--text-color);
     }
     .error-desc {
       color: var(--text-muted);
       font-size: 0.95rem;
       line-height: 1.7;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
     }
     .quick-links {
       margin-top: 2.5rem;
@@ -86,12 +94,15 @@
 
   <header>
     <div class="logo">
-      <a href="./">完全無料・ブラウザ完結型 メディアツール</a>
+      <a href="/">完全無料・ブラウザ完結型 メディアツール</a>
     </div>
   </header>
 
   <main>
     <div class="not-found-wrapper">
+      <!-- 404キャラクターイラスト -->
+      <img src="/assets/img/404.webp" alt="404 Not Found" class="error-illustration">
+
       <div class="error-code">404</div>
       <h1 class="error-title">ページが見つかりませんでした</h1>
       <p class="error-desc">
@@ -99,7 +110,7 @@
         URLに誤りがないか今一度ご確認いただくか、以下のトップページまたは主要ツールをご利用ください。
       </p>
 
-      <a href="./" class="btn" style="display: inline-block; padding: 0.75rem 2rem; font-size: 0.95rem;">
+      <a href="/" class="btn" style="display: inline-block; padding: 0.75rem 2rem; font-size: 0.95rem;">
         🏠 トップページへ戻る
       </a>
 
@@ -107,19 +118,19 @@
       <div class="quick-links">
         <h3>おすすめの主要ツール</h3>
         <div class="quick-links-grid">
-          <a href="./items/image-compressor/" class="quick-link-item">
+          <a href="/items/image-compressor/" class="quick-link-item">
             <span>⚡</span>
             <span>画像一括圧縮・軽量化</span>
           </a>
-          <a href="./items/pdf-merger/" class="quick-link-item">
+          <a href="/items/pdf-merger/" class="quick-link-item">
             <span>📑</span>
             <span>PDF結合・画像PDF変換</span>
           </a>
-          <a href="./items/text-counter/" class="quick-link-item">
+          <a href="/items/text-counter/" class="quick-link-item">
             <span>✍️</span>
             <span>文字数カウント・原稿用紙</span>
           </a>
-          <a href="./items/video-to-gif/" class="quick-link-item">
+          <a href="/items/video-to-gif/" class="quick-link-item">
             <span>🔄</span>
             <span>動画GIF変換ツール</span>
           </a>
