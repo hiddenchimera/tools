@@ -54,6 +54,15 @@ resizeModeSelect.addEventListener('change', () => {
   }
 });
 
+// 保持しているプレビューBlob URLを全破棄してメモリ解放
+function clearProcessedPreviews() {
+  processedFiles.forEach(item => {
+    if (item.previewUrl) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+  });
+}
+
 // --- 複数ファイル対応ドラッグ＆ドロップ実装 ---
 dropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
@@ -108,6 +117,7 @@ recompressBtn.addEventListener('click', () => {
 // 全消去ボタン
 clearBtn.addEventListener('click', () => {
   if (!confirm('取り込んだ画像と結果をすべて消去しますか？')) return;
+  clearProcessedPreviews();
   originalFiles = [];
   processedFiles = [];
   resultsTbody.innerHTML = '';
@@ -116,6 +126,8 @@ clearBtn.addEventListener('click', () => {
 
 // 全画像の一括処理
 async function processAllImages() {
+  // 前回処理したプレビューURLをメモリから解放
+  clearProcessedPreviews();
   processedFiles = [];
   resultsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">処理中...</td></tr>';
 
@@ -210,6 +222,19 @@ function compressSingleImage(file, quality, targetFormatMode, resizeMode, resize
       }, outMime, quality);
     };
 
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve({
+        originalName: file.name,
+        originalSize: file.size,
+        compressedName: file.name,
+        compressedBlob: file,
+        previewUrl: '',
+        width: 0,
+        height: 0
+      });
+    };
+
     img.src = objectUrl;
   });
 }
@@ -245,7 +270,7 @@ function renderResultsTable() {
 
     tr.innerHTML = `
       <td style="width: 60px;">
-        <img src="${item.previewUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">
+        ${item.previewUrl ? `<img src="${item.previewUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color);">` : '-'}
       </td>
       <td>
         <div style="font-weight: 500; word-break: break-all;">${item.compressedName}</div>
@@ -271,7 +296,7 @@ function renderResultsTable() {
     btn.addEventListener('click', (e) => {
       const idx = parseInt(e.target.dataset.index, 10);
       const item = processedFiles[idx];
-      if (item) {
+      if (item && item.compressedBlob) {
         CommonUtils.downloadBlob(item.compressedBlob, item.compressedName);
       }
     });
