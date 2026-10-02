@@ -80,6 +80,44 @@
       border-radius: 8px;
       margin-bottom: 1rem;
     }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -159,6 +197,33 @@
         <button id="download-btn" class="btn">GIFをダウンロード</button>
       </div>
     </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・GIF生成仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>動画:</strong> MP4 (H.264 / AV1), WebM (VP8 / VP9), MOV, MKV, AVI, FLV</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>パレット最適化（高品質化）</h4>
+          <ul>
+            <li><strong>2パスパレット生成:</strong> 動画フレーム全体を解析して最適な256色カスタムカラーパレットを動的に生成（<code>palettegen</code>）。</li>
+            <li><strong>ディザリング合成:</strong> <code>paletteuse</code> フィルターによる高度な階調補正を施し、グラデーションのバンディング（色割れ）やノイズを最小化します。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>リサイズ・補間処理</h4>
+          <ul>
+            <li><strong>Lanczos補間:</strong> 横幅指定リサイズ時は Lanczos アルゴリズムにより、文字や細部の輪郭をくっきりと保ったまま縮小します。</li>
+            <li><strong>比率維持:</strong> 横幅の指定に合わせて、縦横比を崩さず高さを自動計算します。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
   </main>
 
   <footer>
