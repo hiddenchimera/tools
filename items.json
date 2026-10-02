@@ -1,5 +1,14 @@
 [
   {
+    "id": "pdf-merger",
+    "name": "PDF結合・ページ抽出ツール",
+    "description": "複数PDFを完全ローカルで安全に結合・ページ抽出。機密文書や契約書もサーバー送信ゼロで安心。",
+    "category": "image",
+    "path": "./items/pdf-merger/",
+    "icon": "shield",
+    "tags": ["PDF結合", "PDF分割", "ページ抽出", "機密保持", "安全"]
+  },
+  {
     "id": "image-compressor",
     "name": "画像一括圧縮・軽量化ツール",
     "description": "複数画像を完全ローカルで一括圧縮・WebP変換・リサイズ。外部サーバーへの送信ゼロで安全に容量削減。",
