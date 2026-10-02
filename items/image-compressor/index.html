@@ -217,11 +217,48 @@
       min-width: 200px;
     }
 
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 2.5rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+
     /* SEO解説コンテンツ領域 */
     .seo-article {
-      margin-top: 3.5rem;
-      padding-top: 2.5rem;
-      border-top: 1px solid var(--border-color);
+      margin-top: 2.5rem;
       line-height: 1.8;
       color: var(--text-color);
     }
@@ -412,6 +449,36 @@
       </div>
 
     </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・圧縮アルゴリズムの詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>画像:</strong> PNG, JPG/JPEG, WebP, AVIF, GIF, BMP, SVG</li>
+            <li><strong>一括処理:</strong> 複数ファイルの一括ドロップ・順次並列圧縮に対応</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>出力対応フォーマット</h4>
+          <ul>
+            <li><strong>WebP:</strong> 次世代軽量フォーマット。可逆/非可逆双方に対応し、透過を維持したまま大幅軽量化。</li>
+            <li><strong>JPG/JPEG:</strong> 透過部分は白背景（#FFFFFF）に自動合成。品質パラメータ（0.10〜1.00）によるDCT量子化。</li>
+            <li><strong>PNG:</strong> 透過アルファチャンネル完全保持のロスレス出力。</li>
+            <li><strong>元形式維持:</strong> 各入力ファイルの拡張子・MIMEタイプに合わせて個別最適化。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>リサイズ・Exif除去仕様</h4>
+          <ul>
+            <li><strong>バイリニア/バイキュービック補間:</strong> ブラウザのネイティブ描画エンジンによる滑らかなダウンサンプリング。アスペクト比は完全固定。</li>
+            <li><strong>Exif物理除去:</strong> ピクセル生データのみを再エンコードするため、GPS座標・撮影機器情報・日時は100%自動除去。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
 
     <!-- SEO解説コンテンツ（検索意図充足・被リンク獲得用） -->
     <article class="seo-article">
