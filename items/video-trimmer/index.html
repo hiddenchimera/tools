@@ -93,6 +93,44 @@
       background: #000;
       margin: 1rem 0;
     }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -166,6 +204,33 @@
         </div>
       </div>
     </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応フォーマット・エンコード仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>動画:</strong> MP4, MOV, WebM, MKV, AVI, FLV, WMV, M4V</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>出力仕様（MP4 / H.264）</h4>
+          <ul>
+            <li><strong>映像コーデック:</strong> H.264（<code>libx264</code>, CRF 23, ultrafastプリセット）</li>
+            <li><strong>音声コーデック:</strong> AAC（無音化オフ時）</li>
+            <li><strong>無音化（ミュート）:</strong> <code>-an</code> フラグにより音声トラックを物理的に完全除去。再生デバイス側のミュートではなくファイル自体が無音になります。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>切り出し精度</h4>
+          <ul>
+            <li><strong>ミリ秒単位指定:</strong> 入力動画のタイムスタンプ（PTS）に基づき、小数点第1位（0.1秒単位）の高精度で切り出しを行います。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
   </main>
 
   <footer>
