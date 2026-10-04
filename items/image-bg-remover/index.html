@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R3DRCDH9Z3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R3DRCDH9Z3');
+    gtag('config', 'G-FW7R85YTVX');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【無料・安全】AI画像背景透過・切り抜きツール | サーバー送信なし - Tools</title>
+  <meta name="description" content="ブラウザ内蔵のAI（WebGPU）を活用し、写真の人物・被写体を高精度に自動認識して背景を透過PNG化。画像データを外部サーバーへ一切送信しない完全ローカル処理。">
+  <meta name="keywords" content="背景透過,背景削除,画像切り抜き,透過PNG,AI背景透過,WebGPU,安全,サーバー送信なし,無料">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="【無料・安全】AI画像背景透過・切り抜きツール | サーバー送信なし">
+  <meta property="og:description" content="ブラウザ内部のAIで画像背景を高精度に切り抜き・透過PNG化。サーバー送信ゼロでプライバシーも安心。">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../../assets/css/common.css">
+
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .editor-section {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .preview-card {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-card h4 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .preview-box {
+      flex: 1;
+      min-height: 240px;
+      max-height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+    .preview-box img {
+      max-width: 100%;
+      max-height: 380px;
+      object-fit: contain;
+    }
+    /* 透過チェッカーボード（ダークテーマ調） */
+    .checkerboard {
+      background-color: #0f172a;
+      background-image:
+        linear-gradient(45deg, #1e293b 25%, transparent 25%),
+        linear-gradient(-45deg, #1e293b 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1e293b 75%),
+        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+    .progress-box {
+      display: none;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background-color: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--primary-color);
+      transition: width 0.2s ease-out;
+    }
+    .status-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .action-row button {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; AI画像背景透過・切り抜きツール
+    </div>
+
+    <h1>AI画像背景透過・切り抜きツール</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      ブラウザ内蔵AIが写真の人物や被写体を自動認識し、背景を高精度に切り抜いて透過PNGとして保存します。<br>
+      画像データは外部サーバーへ一切送信されず、端末内ローカルで安全・高速に処理されます。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">🪄</div>
+      <h3>背景を透過したい画像をドラッグ＆ドロップ</h3>
+      <p>またはクリックしてファイルを選択（PNG, JPG, WebP等）</p>
+    </div>
+
+    <!-- 進捗バー -->
+    <div id="progress-box" class="progress-box">
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="status-text" class="status-text">AIモデルを準備中...</div>
+    </div>
+
+    <!-- 編集・プレビュー領域 -->
+    <div id="editor-section" class="editor-section">
+      <div class="preview-grid">
+        <div class="preview-card">
+          <h4>元画像</h4>
+          <div class="preview-box">
+            <img id="orig-img" alt="元画像プレビュー">
+          </div>
+        </div>
+        <div class="preview-card">
+          <h4>背景透過後（PNGプレビュー）</h4>
+          <div class="preview-box checkerboard">
+            <img id="result-img" alt="背景透過プレビュー" style="display: none;">
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button id="download-btn" class="btn" style="background: var(--primary-color);" disabled>⬇ 透過PNGをダウンロード</button>
+        <button id="clear-btn" class="btn" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid #ef4444; max-width: 160px;">クリア</button>
+      </div>
+    </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>対応環境・AI処理仕様の詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>AIエンジン・実行仕様</h4>
+          <ul>
+            <li><strong>モデル:</strong> RMBG-1.4（Bria AI開発の高精度背景切り抜き特化モデル）。</li>
+            <li><strong>実行環境:</strong> WebGPU（対応ブラウザ）または WASM（CPUフォールバック）。</li>
+            <li><strong>キャッシュ:</strong> 初回読み込み完了後、モデルバイナリはブラウザ（CacheStorage）に保存され、2回目以降は瞬時に起動します。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>入力・出力仕様</h4>
+          <ul>
+            <li><strong>入力対応:</strong> PNG, JPG/JPEG, WebP, AVIF, BMP, GIF</li>
+            <li><strong>出力形式:</strong> PNG（32bit RGBA / アルファチャンネル透過保持）</li>
+            <li><strong>解像度:</strong> 元画像のピクセル縦横サイズを100%維持して出力。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>プライバシー・セキュリティ</h4>
+          <ul>
+            <li><strong>完全ゼロ送信:</strong> 画像データは端末のGPU/CPUおよびRAM領域でのみ演算・処理されます。外部サーバーへの通信は一切発生しません。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
