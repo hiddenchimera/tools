@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R3DRCDH9Z3"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R3DRCDH9Z3');
+    gtag('config', 'G-FW7R85YTVX');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【無料・安全】画像リサイズ・画素数変更ツール（px・%指定） | サーバー送信なし - Tools</title>
+  <meta name="description" content="画像のピクセル数（幅・高さ）やパーセント（%）を指定してブラウザ内で高速にリサイズ・縮小変換。アスペクト比固定対応。サーバー送信ゼロで安全。">
+  <meta name="keywords" content="画像リサイズ,画素数変更,ピクセル変更,画像縮小,アスペクト比維持,無料,安全,サーバー送信なし">
+
+  <!-- OGP / Twitter Card -->
+  <meta property="og:title" content="【無料・安全】画像リサイズ・画素数変更ツール（px・%指定） | サーバー送信なし">
+  <meta property="og:description" content="ピクセル数やパーセントを指定して画像を瞬時にリサイズ。ブラウザ完結で安全・高速。">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="../../assets/css/common.css">
+
+  <style>
+    .breadcrumb {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+    .breadcrumb a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    .control-panel {
+      display: none;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .preview-container {
+      text-align: center;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 140px;
+    }
+    .preview-container img {
+      max-width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .stats-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .stats-badge-row strong {
+      color: var(--primary-color);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .form-group select,
+    .form-group input[type="number"] {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .dimension-inputs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dimension-inputs input {
+      flex: 1;
+      width: 100%;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.6rem;
+      border-radius: 6px;
+    }
+    .checkbox-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-top: 0.35rem;
+    }
+    .checkbox-inline input {
+      cursor: pointer;
+    }
+
+    /* 仕様説明アコーディオン */
+    .spec-details {
+      margin-top: 3rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .spec-details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      outline: none;
+    }
+    .spec-details summary:hover {
+      color: var(--text-color);
+    }
+    .spec-content {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+    .spec-group h4 {
+      font-size: 0.825rem;
+      color: var(--text-color);
+      margin-bottom: 0.35rem;
+    }
+    .spec-group ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .spec-group li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="../../">完全無料・ブラウザ完結型 メディアツール</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <a href="../../">トップ</a> &gt; 画像リサイズ・画素数変更ツール
+    </div>
+
+    <h1>画像リサイズ・画素数変更ツール</h1>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+      画像のピクセル数（幅・高さ）やパーセント倍率を指定してリサイズ・縮小します。<br>
+      Webサイトの投稿要件（幅300px〜400px等）にピッタリ合わせられます。サーバー送信ゼロで安全です。
+    </p>
+
+    <!-- ファイルドロップエリア -->
+    <div id="dropzone" class="dropzone">
+      <div style="font-size: 2.75rem; margin-bottom: 0.5rem;">📏</div>
+      <h3>サイズ変更する画像をドラッグ＆ドロップ</h3>
+      <p>またはクリックして選択（PNG, JPG, WebP, AVIF, GIF, BMPなど）</p>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div id="control-panel" class="control-panel">
+      
+      <!-- プレビュー -->
+      <div class="preview-container">
+        <img id="image-preview" alt="画像プレビュー">
+      </div>
+
+      <!-- 画素数変化ステータスバー -->
+      <div class="stats-badge-row">
+        <span>元のサイズ: <strong id="orig-dim">-</strong></span>
+        <span>➔</span>
+        <span>変更後: <strong id="target-dim">-</strong></span>
+      </div>
+
+      <div class="form-grid">
+        <!-- リサイズ方式の選択 -->
+        <div class="form-group">
+          <label for="mode-select">指定方法</label>
+          <select id="mode-select">
+            <option value="px" selected>幅・高さ（ピクセル指定）</option>
+            <option value="percent">パーセント（%倍率指定）</option>
+            <option value="max-edge">長辺サイズ指定（px）</option>
+          </select>
+        </div>
+
+        <!-- ピクセル指定UI -->
+        <div class="form-group" id="group-px">
+          <label>横幅 (W) × 高さ (H)</label>
+          <div class="dimension-inputs">
+            <input type="number" id="input-w" min="1" max="10000" placeholder="幅">
+            <span style="color: var(--text-muted);">×</span>
+            <input type="number" id="input-h" min="1" max="10000" placeholder="高">
+          </div>
+          <label class="checkbox-inline">
+            <input type="checkbox" id="lock-ratio" checked>
+            <span>縦横比（アスペクト比）を維持する</span>
+          </label>
+        </div>
+
+        <!-- パーセント指定UI -->
+        <div class="form-group" id="group-percent" style="display: none;">
+          <label for="input-percent">縮小・拡大倍率 (%)</label>
+          <input type="number" id="input-percent" min="1" max="500" value="50" step="5">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">※例: 50%にすると縦横それぞれ半分になります</span>
+        </div>
+
+        <!-- 長辺指定UI -->
+        <div class="form-group" id="group-max-edge" style="display: none;">
+          <label for="input-max-edge">長辺の最大ピクセル (px)</label>
+          <input type="number" id="input-max-edge" min="10" max="10000" value="400" step="10">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">※縦横の長い方を基準にして自動縮小</span>
+        </div>
+
+        <!-- 保存形式 -->
+        <div class="form-group">
+          <label for="format-select">保存フォーマット</label>
+          <select id="format-select">
+            <option value="original" selected>元の形式を維持</option>
+            <option value="image/png">PNG（高画質・透過保持）</option>
+            <option value="image/jpeg">JPG（写真向け・軽量）</option>
+            <option value="image/webp">WebP（次世代・軽量）</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="download-btn" class="btn" style="width: 100%;">リサイズしてダウンロード</button>
+    </div>
+
+    <!-- 仕様説明アコーディオン -->
+    <details class="spec-details">
+      <summary>リサイズ仕様・リサンプリングの詳細</summary>
+      <div class="spec-content">
+        <div class="spec-group">
+          <h4>入力対応フォーマット</h4>
+          <ul>
+            <li><strong>画像:</strong> PNG, JPG/JPEG, WebP, AVIF, GIF, BMP, SVG</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>リサンプリング補間アルゴリズム</h4>
+          <ul>
+            <li><strong>高品質バイリニア / バイキュービック補間:</strong> ブラウザ標準のネイティブ描画エンジン（Canvas 2D）により、縮小時もモアレやジャギーを抑えて滑らかにリサンプリングします。</li>
+          </ul>
+        </div>
+        <div class="spec-group">
+          <h4>プライバシー・Exif処理</h4>
+          <ul>
+            <li><strong>Exif物理除去:</strong> ピクセル生データのみを再描画するため、撮影位置（GPS）やカメラ情報は自動で除去されます。外部サーバー送信は一切ありません。</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <p>&copy; Hidden Chimera All Rights Reserved.</p>
+  </footer>
+
+  <script src="../../assets/js/common.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
