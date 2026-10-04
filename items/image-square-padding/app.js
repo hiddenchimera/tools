@@ -89,19 +89,25 @@ function renderSquareImage() {
   }
   // 'transparent' の場合は何もしない（透過のまま）
 
-  // 2. 余白（パディング）と画像の配置計算
-  const paddingPercent = parseFloat(paddingScaleInput.value) / 100;
-  const availableDim = maxDim * (1 - paddingPercent * 2);
+  // 2. ズーム倍率に基づく描画サイズの計算（100%基準）
+  // 100%未満なら縮小（余白拡大）、100%超なら拡大（ズーム＆はみ出しクロップ）
+  const zoomRatio = parseFloat(paddingScaleInput.value) / 100;
+  const baseScale = Math.min(maxDim / originalWidth, maxDim / originalHeight);
+  const finalScale = baseScale * zoomRatio;
 
-  const scale = Math.min(availableDim / originalWidth, availableDim / originalHeight);
-  const drawWidth = originalWidth * scale;
-  const drawHeight = originalHeight * scale;
+  const drawWidth = originalWidth * finalScale;
+  const drawHeight = originalHeight * finalScale;
 
   const dx = (maxDim - drawWidth) / 2;
   const dy = (maxDim - drawHeight) / 2;
 
-  // 3. 元画像を中心に描画
+  // 3. 正方形領域内にクリッピングして中央描画（拡大時の枠外はみ出しを防止）
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, maxDim, maxDim);
+  ctx.clip();
   ctx.drawImage(currentImage, dx, dy, drawWidth, drawHeight);
+  ctx.restore();
 }
 
 // ダウンロード処理
