@@ -18,6 +18,15 @@
     "tags": ["PDF結合", "画像PDF変換", "JPG/PNG", "WebP", "機密保持", "安全"]
   },
   {
+    "id": "image-bg-remover",
+    "name": "AI画像背景透過・切り抜きツール",
+    "description": "ブラウザ内蔵AI（WebGPU）で写真の人物や被写体を自動認識し、背景を高精度に切り抜き・透過PNG化。サーバー送信ゼロで安全。",
+    "category": "image",
+    "path": "./items/image-bg-remover/",
+    "icon": "shield",
+    "tags": ["背景透過", "背景削除", "切り抜き", "AI", "WebGPU", "透過PNG", "安全"]
+  },
+  {
     "id": "image-compressor",
     "name": "画像一括圧縮・軽量化ツール",
     "description": "複数画像を完全ローカルで一括圧縮・WebP変換・リサイズ。外部サーバーへの送信ゼロで安全に容量削減。",
