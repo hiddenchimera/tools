@@ -1,5 +1,6 @@
 let currentImage = null;
 let currentFileName = '';
+let currentPreviewUrl = null; // プレビュー用URLポインタ
 let origW = 0;
 let origH = 0;
 let targetW = 0;
@@ -31,18 +32,23 @@ CommonUtils.initDropzone(dropzone, (file) => {
     return;
   }
 
-  currentFileName = file.name;
-  const img = new Image();
-  const objUrl = URL.createObjectURL(file);
+  // 以前のプレビューURLが存在する場合はメモリ解放
+  if (currentPreviewUrl) {
+    URL.revokeObjectURL(currentPreviewUrl);
+    currentPreviewUrl = null;
+  }
 
+  currentFileName = file.name;
+  currentPreviewUrl = URL.createObjectURL(file);
+
+  const img = new Image();
   img.onload = () => {
-    URL.revokeObjectURL(objUrl);
     currentImage = img;
     origW = img.naturalWidth;
     origH = img.naturalHeight;
 
     origDimSpan.textContent = `${origW} × ${origH} px`;
-    imagePreview.src = img.src;
+    imagePreview.src = currentPreviewUrl; // 有効なURLをセット
 
     // 初期値として元の解像度をセット
     inputW.value = origW;
@@ -54,7 +60,7 @@ CommonUtils.initDropzone(dropzone, (file) => {
     controlPanel.style.display = 'block';
   };
 
-  img.src = objUrl;
+  img.src = currentPreviewUrl;
 });
 
 // モード切り替え
