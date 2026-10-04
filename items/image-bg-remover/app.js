@@ -57,17 +57,25 @@ async function handleImage(file) {
 
       statusText.textContent = `モデルデータを読み込み中 (${device.toUpperCase()})...`;
 
+// --- 修正後（放物線イージング曲線を適用） ---
+      const updateEasingProgress = (percent, fileName) => {
+        const clamped = Math.min(99, Math.max(0, Math.round(percent)));
+        const x = clamped / 100;
+        const curvedPercent = (1 - Math.pow(1 - x, 2)) * 100; // y = -(x-1)^2 + 1
+
+        progressBar.style.width = `${curvedPercent.toFixed(1)}%`;
+        statusText.textContent = `AIモデルをダウンロード中: ${fileName || ''} (${clamped}%)`;
+      };
+
       model = await AutoModel.from_pretrained('briaai/RMBG-1.4', {
         device,
         progress_callback: (info) => {
           if (info.status === 'progress' && info.total) {
-            const p = Math.round((info.loaded / info.total) * 100);
-            progressBar.style.width = `${p}%`;
-            statusText.textContent = `AIモデルをダウンロード中: ${info.file || ''} (${p}%)`;
+            const percent = (info.loaded / info.total) * 100;
+            updateEasingProgress(percent, info.file);
           }
         }
       });
-
       processor = await AutoProcessor.from_pretrained('briaai/RMBG-1.4');
     }
 
