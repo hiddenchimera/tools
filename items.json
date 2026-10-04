@@ -27,6 +27,15 @@
     "tags": ["背景透過", "背景削除", "切り抜き", "AI", "WebGPU", "透過PNG", "安全"]
   },
   {
+    "id": "image-resizer",
+    "name": "画像リサイズ・画素数変更ツール",
+    "description": "画像の幅・高さ（px）やパーセント（%）を指定して解像度を縮小・拡大リサイズ。縦横比固定対応でWeb投稿要件にも最適。",
+    "category": "image",
+    "path": "./items/image-resizer/",
+    "icon": "maximize",
+    "tags": ["画像リサイズ", "画素数変更", "px指定", "アスペクト比維持", "縮小", "安全"]
+  },
+  {
     "id": "image-compressor",
     "name": "画像一括圧縮・軽量化ツール",
     "description": "複数画像を完全ローカルで一括圧縮・WebP変換・リサイズ。外部サーバーへの送信ゼロで安全に容量削減。",
